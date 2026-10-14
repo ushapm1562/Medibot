@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MediBOT – AI Healthcare Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Kannada:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0e3b43;--bg:#eef6f5;--card:#fff;--teal:#1b8a8a;--teal2:#136b6b;--amber:#f2b544;--line:#cfe3e1;--mut:#53767a;--bad:#c0392b;--ok:#1e8e5a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#e3f2f1;--bg:#0b1f23;--card:#12313a;--line:#24505a;--mut:#8fb5b8;--teal:#37b5b0;--teal2:#2a9792}}
+:root[data-theme="dark"]{--ink:#e3f2f1;--bg:#0b1f23;--card:#12313a;--line:#24505a;--mut:#8fb5b8;--teal:#37b5b0;--teal2:#2a9792}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans','Noto Sans Kannada','Noto Sans Devanagari','Noto Sans Telugu','Noto Sans Tamil',system-ui,sans-serif;line-height:1.55}
+header{background:var(--teal2);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px}
+header b{font-size:1.25rem}
+header span{opacity:.85;font-size:.85rem}
+.cross{width:34px;height:34px;border-radius:9px;background:#fff;position:relative;flex:none}
+.cross:before,.cross:after{content:"";position:absolute;background:var(--teal2);border-radius:2px}
+.cross:before{left:14px;top:7px;width:6px;height:20px}.cross:after{left:7px;top:14px;width:20px;height:6px}
+#steps{display:flex;gap:6px;padding:12px 18px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--line)}
+#steps i{font-style:normal;white-space:nowrap;font-size:.78rem;padding:4px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
+#steps i.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+#steps i.done{border-color:var(--teal);color:var(--teal)}
+main{max-width:760px;margin:0 auto;padding:18px}
+h2{margin:6px 0 14px;font-size:1.4rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.chip{padding:8px 14px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;font:inherit}
+.chip.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.opt{display:block;width:100%;text-align:left;padding:12px 14px;margin-bottom:10px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer}
+.opt.on{border-color:var(--teal);box-shadow:inset 0 0 0 1px var(--teal)}
+.opt small{display:block;color:var(--mut)}
+label{display:block;font-weight:600;margin:12px 0 4px;font-size:.92rem}
+input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
+button.go{background:var(--teal);color:#fff;border:0;border-radius:12px;padding:13px 22px;font:inherit;font-weight:700;cursor:pointer;margin-top:8px}
+button.go:hover{background:var(--teal2)}
+button.alt{background:transparent;color:var(--teal);border:1.5px solid var(--teal);margin-left:8px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top;font-size:.93rem}
+th{color:var(--mut);font-weight:600}
+.wrap{overflow-x:auto}
+.tag{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.8rem;font-weight:700;color:#fff}
+.High{background:var(--bad)}.Medium{background:#d98a00}.Low{background:var(--ok)}
+.hint{color:var(--mut);font-size:.85rem}
+.warn{border-left:5px solid var(--amber);background:var(--card);padding:10px 14px;border-radius:8px;margin:12px 0;font-size:.88rem}
+.bar{height:12px;border-radius:99px;background:var(--line);overflow:hidden;margin:6px 0 16px}
+.bar div{height:100%;background:var(--teal);width:0;transition:width 1s}
+.stage{display:flex;gap:10px;align-items:center;padding:7px 0;color:var(--mut)}
+.stage.on{color:var(--ink);font-weight:600}
+.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);flex:none}
+.stage.on .dot{background:var(--ok);border-color:var(--ok)}
+.stars button{font-size:1.6rem;background:none;border:0;cursor:pointer;color:var(--line);padding:0 2px}
+.stars button.on{color:var(--amber)}
+.tot{font-size:1.2rem;font-weight:700}
+#vbar{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;z-index:9}
+.vb{border:0;border-radius:99px;padding:12px 16px;background:var(--teal2);color:#fff;font:inherit;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.3);cursor:pointer}
+.vb.on{background:var(--amber);color:#1a1a1a}
+#toast{position:fixed;left:14px;right:14px;bottom:76px;background:#222;color:#fff;padding:10px 14px;border-radius:10px;display:none;z-index:10;font-size:.9rem}
+.mic{margin-top:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:5px 14px;cursor:pointer;font:inherit}
+.mic.rec{background:var(--bad);color:#fff}
+main{padding-bottom:80px}
+h4{margin:12px 0 4px}ul{margin:4px 0;padding-left:1.3em}
+.msg{max-width:82%;padding:8px 12px;border-radius:14px;word-break:break-word}
+.msg.me{align-self:flex-end;background:var(--teal);color:#fff}
+.msg.dr{align-self:flex-start;background:var(--bg);border:1px solid var(--line)}
+.msg small{display:block;opacity:.7;font-size:.7rem}
+.call{text-align:center}
+.av{width:96px;height:96px;border-radius:50%;background:var(--teal);color:#fff;font-size:2rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:12px auto}
+.ring{animation:ring 1.4s infinite}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(27,138,138,.6)}100%{box-shadow:0 0 0 36px rgba(27,138,138,0)}}
+.vid{position:relative;height:260px;border-radius:12px;background:#0b1f23;margin-bottom:10px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.self{position:absolute;right:10px;bottom:10px;width:90px;height:120px;border-radius:10px;background:#24505a;color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.self video{width:100%;height:100%;object-fit:cover}
+.wave{display:flex;gap:4px;align-items:center;height:30px;justify-content:center}
+.wave i{width:5px;height:8px;background:var(--teal);border-radius:3px;animation:wv 1s infinite ease-in-out}
+.wave i:nth-child(2){animation-delay:.15s}.wave i:nth-child(3){animation-delay:.3s}.wave i:nth-child(4){animation-delay:.45s}.wave i:nth-child(5){animation-delay:.6s}
+@keyframes wv{50%{height:28px}}
+.chip.on{background:var(--bad);border-color:var(--bad)}
+@media(prefers-reduced-motion:reduce){.bar div{transition:none}.ring,.wave i{animation:none}}
+</style>
+</head>
+<body>
+<header><div class="cross"></div><div><b id="hn">MediBOT</b><br><span id="ht">AI-Powered Healthcare Assistant</span></div></header>
+<div id="steps"></div>
+<div id="vbar"><button id="vbtn" class="vb" aria-pressed="false" aria-label="Voice assistant" onclick="toggleVoice()">🔊 Voice</button><button class="vb" aria-label="Read again" onclick="replay()">↻</button></div><div id="toast" role="status"></div><main id="app"></main><footer id="ft" class="hint" style="text-align:center;padding:10px 18px 24px"></footer>
+<script>
+const FEE=50,DEL=30;
+/* English key -> "kn|hi|te|ta" */
+const D={
+"MediBOT":"ಮೆಡಿಬಾಟ್|मेडीबॉट|మెడిబాట్|மெடிபாட்",
+"AI-Powered Healthcare Assistant":"ಎಐ ಆಧಾರಿತ ಆರೋಗ್ಯ ಸಹಾಯಕ|एआई-संचालित स्वास्थ्य सहायक|ఏఐ ఆధారిత ఆరోగ్య సహాయకుడు|AI அடிப்படையிலான சுகாதார உதவியாளர்",
+"Demo project – not a substitute for a real doctor.":"ಇದು ಡೆಮೊ ಪ್ರಾಜೆಕ್ಟ್ – ನಿಜವಾದ ವೈದ್ಯರಿಗೆ ಪರ್ಯಾಯವಲ್ಲ.|यह डेमो प्रोजेक्ट है – असली डॉक्टर का विकल्प नहीं।|ఇది డెమో ప్రాజెక్ట్ – నిజమైన వైద్యునికి ప్రత్యామ్నాయం కాదు.|இது டெமோ திட்டம் – உண்மையான மருத்துவருக்கு மாற்று அல்ல.",
+"Create your account":"ಖಾತೆ ರಚಿಸಿ|अपना खाता बनाएं|మీ ఖాతాను సృష్టించండి|உங்கள் கணக்கை உருவாக்குங்கள்",
+"Phone number (10 digits)":"ಫೋನ್ ಸಂಖ್ಯೆ (10 ಅಂಕಿ)|फोन नंबर (10 अंक)|ఫోన్ నంబర్ (10 అంకెలు)|தொலைபேசி எண் (10 இலக்கம்)",
+"Full name":"ಪೂರ್ಣ ಹೆಸರು|पूरा नाम|పూర్తి పేరు|முழு பெயர்",
+"OTP (demo: 1234)":"ಒಟಿಪಿ (ಡೆಮೊ: 1234)|ओटीपी (डेमो: 1234)|ఓటీపీ (డెమో: 1234)|OTP (டெமோ: 1234)",
+"Create a password":"ಪಾಸ್‌ವರ್ಡ್ ರಚಿಸಿ|पासवर्ड बनाएं|పాస్‌వర్డ్ సృష్టించండి|கடவுச்சொல்லை உருவாக்குங்கள்",
+"Confirm password":"ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ|पासवर्ड की पुष्टि करें|పాస్‌వర్డ్ నిర్ధారించండి|கடவுச்சொல்லை உறுதிப்படுத்துங்கள்",
+"Allow location access":"ಸ್ಥಳದ ಅನುಮತಿ ನೀಡಿ|स्थान की अनुमति दें|లొకేషన్ అనుమతి ఇవ్వండి|இருப்பிட அனுமதி வழங்குங்கள்",
+"Enter a valid 10-digit phone number.":"ಸರಿಯಾದ 10 ಅಂಕಿಯ ಫೋನ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ.|सही 10 अंकों का फोन नंबर डालें।|సరైన 10 అంకెల ఫోన్ నంబర్ నమోదు చేయండి.|சரியான 10 இலக்க எண்ணை உள்ளிடுங்கள்.",
+"Incorrect OTP. Try 1234.":"ತಪ್ಪು ಒಟಿಪಿ. 1234 ಪ್ರಯತ್ನಿಸಿ.|गलत ओटीपी। 1234 डालें।|తప్పు ఓటీపీ. 1234 ప్రయత్నించండి.|தவறான OTP. 1234 உள்ளிடுங்கள்.",
+"Passwords don't match.":"ಪಾಸ್‌ವರ್ಡ್‌ಗಳು ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ.|पासवर्ड मेल नहीं खाते।|పాస్‌వర్డ్‌లు సరిపోలలేదు.|கடவுச்சொற்கள் பொருந்தவில்லை.",
+"Continue":"ಮುಂದುವರಿಸಿ|आगे बढ़ें|కొనసాగించండి|தொடரவும்",
+"Back":"ಹಿಂದೆ|पीछे|వెనుకకు|பின்செல்",
+"Dashboard":"ಡ್ಯಾಶ್‌ಬೋರ್ಡ್|डैशबोर्ड|డ్యాష్‌బోర్డ్|டாஷ்போர்டு",
+"Hi":"ನಮಸ್ಕಾರ|नमस्ते|నమస్కారం|வணக்கம்",
+"New consultation":"ಹೊಸ ಸಲಹೆ|नई सलाह|కొత్త సంప్రదింపు|புதிய ஆலோசனை",
+"Medical history":"ಮೆಡಿಕಲ್ ಇತಿಹಾಸ|मेडिकल इतिहास|వైద్య చరిత్ర|மருத்துவ வரலாறு",
+"No past consultations yet.":"ಇನ್ನೂ ಯಾವುದೇ ಹಿಂದಿನ ಸಲಹೆ ಇಲ್ಲ.|अभी तक कोई पिछली सलाह नहीं।|ఇంకా గత సంప్రదింపులు లేవు.|இதுவரை ஆலோசனைகள் இல்லை.",
+"MediBOT connects you with AI health guidance, real doctors, and medicine delivery.":"ಮೆಡಿಬಾಟ್ ನಿಮ್ಮನ್ನು ಎಐ ಆರೋಗ್ಯ ಸಲಹೆ, ನಿಜವಾದ ವೈದ್ಯರು ಮತ್ತು ಔಷಧಿ ಡೆಲಿವರಿಗೆ ಸಂಪರ್ಕಿಸುತ್ತದೆ.|मेडीबॉट आपको एआई स्वास्थ्य सलाह, असली डॉक्टर और दवा डिलीवरी से जोड़ता है।|మెడిబాట్ మిమ్మల్ని ఏఐ ఆరోగ్య సలహా, నిజమైన వైద్యులు, మందుల డెలివరీతో కలుపుతుంది.|மெடிபாட் AI சுகாதார வழிகாட்டல், உண்மையான மருத்துவர்கள், மருந்து விநியோகத்துடன் உங்களை இணைக்கிறது.",
+"past consultation(s) saved":"ಹಿಂದಿನ ಸಲಹೆಗಳು ಉಳಿಸಲಾಗಿದೆ|पिछली सलाह सहेजी गई|గత సంప్రదింపులు సేవ్ అయ్యాయి|சேமிக்கப்பட்ட ஆலோசனைகள்",
+"Condition":"ಸ್ಥಿತಿ|स्थिति|పరిస్థితి|நிலை",
+"Risk":"ಅಪಾಯ|जोखिम|ప్రమాదం|ஆபத்து",
+"Doctor":"ವೈದ್ಯರು|डॉक्टर|వైద్యుడు|மருத்துவர்",
+"Symptoms":"ಲಕ್ಷಣಗಳು|लक्षण|లక్షణాలు|அறிகுறிகள்",
+"Describe your symptoms":"ನಿಮ್ಮ ಲಕ್ಷಣಗಳನ್ನು ತಿಳಿಸಿ|अपने लक्षण बताएं|మీ లక్షణాలను తెలపండి|உங்கள் அறிகுறிகளைக் கூறுங்கள்",
+"Or describe in your own words":"ಅಥವಾ ನಿಮ್ಮ ಮಾತಿನಲ್ಲಿ ಬರೆಯಿರಿ|या अपने शब्दों में लिखें|లేదా మీ మాటల్లో రాయండి|அல்லது உங்கள் சொற்களில் எழுதுங்கள்",
+"How long have you had this?":"ಇದು ಎಷ್ಟು ದಿನದಿಂದ ಇದೆ?|यह कब से है?|ఇది ఎంతకాలంగా ఉంది?|இது எவ்வளவு நாளாக உள்ளது?",
+"e.g. 3 days":"ಉದಾ: 3 ದಿನ|जैसे: 3 दिन|ఉదా: 3 రోజులు|எ.கா: 3 நாள்",
+"Severity":"ತೀವ್ರತೆ|गंभीरता|తీవ్రత|தீவிரம்",
+"Mild":"ಸ್ವಲ್ಪ|हल्का|స్వల్పం|லேசானது",
+"Moderate":"ಮಧ್ಯಮ|मध्यम|మధ్యస్థం|மிதமானது",
+"Severe":"ತೀವ್ರ|गंभीर|తీవ్రం|கடுமையானது",
+"Pick at least one symptom or describe it.":"ಕನಿಷ್ಠ ಒಂದು ಲಕ್ಷಣ ಆಯ್ಕೆಮಾಡಿ ಅಥವಾ ವಿವರಿಸಿ.|कम से कम एक लक्षण चुनें या बताएं।|కనీసం ఒక లక్షణాన్ని ఎంచుకోండి లేదా వివరించండి.|குறைந்தது ஒரு அறிகுறியைத் தேர்ந்தெடுக்கவும் அல்லது விவரிக்கவும்.",
+"Fever":"ಜ್ವರ|बुखार|జ్వరం|காய்ச்சல்","Cough":"ಕೆಮ್ಮು|खांसी|దగ్గు|இருமல்","Sore throat":"ಗಂಟಲು ನೋವು|गले में खराश|గొంతు నొప్పి|தொண்டை வலி","Headache":"ತಲೆನೋವು|सिरदर्द|తలనొప్పి|தலைவலி","Nausea":"ವಾಕರಿಕೆ|जी मिचलाना|వికారం|குமட்டல்","Vomiting":"ವಾಂತಿ|उल्टी|వాంతులు|வாந்தி","Diarrhea":"ಭೇದಿ|दस्त|విరేచనాలు|வயிற்றுப்போக்கு","Breathlessness":"ಉಸಿರಾಟದ ತೊಂದರೆ|सांस फूलना|ఊపిరి ఆడకపోవడం|மூச்சுத் திணறல்","Chest pain":"ಎದೆ ನೋವು|सीने में दर्द|ఛాతీ నొప్పి|நெஞ்சு வலி","Fatigue":"ಆಯಾಸ|थकान|అలసట|சோர்வு","Joint pain":"ಕೀಲು ನೋವು|जोड़ों का दर्द|కీళ్ల నొప్పి|மூட்டு வலி","Rash":"ಚರ್ಮದ ದದ್ದು|त्वचा पर दाने|చర్మంపై దద్దుర్లు|தோல் தடிப்பு","Sensitivity to light":"ಬೆಳಕಿಗೆ ಸಂವೇದನೆ|रोशनी से परेशानी|వెలుతురుకు సున్నితత్వం|ஒளி உணர்திறன்","Stomach pain":"ಹೊಟ್ಟೆ ನೋವು|पेट दर्द|కడుపు నొప్పి|வயிற்று வலி","Unknown":"ತಿಳಿದಿಲ್ಲ|अज्ञात|తెలియదు|தெரியவில்லை",
+"Choose a doctor":"ವೈದ್ಯರನ್ನು ಆಯ್ಕೆಮಾಡಿ|डॉक्टर चुनें|వైద్యుడిని ఎంచుకోండి|மருத்துவரைத் தேர்ந்தெடுங்கள்",
+"Available now":"ಈಗ ಲಭ್ಯ|अभी उपलब्ध|ఇప్పుడు అందుబాటులో|இப்போது கிடைக்கும்",
+"Available later":"ನಂತರ ಲಭ್ಯ|बाद में उपलब्ध|తర్వాత అందుబాటులో|பின்னர் கிடைக்கும்",
+"Available at":"ಲಭ್ಯ ಸಮಯ|उपलब्ध समय|అందుబాటు సమయం|கிடைக்கும் நேரம்",
+"ratings":"ರೇಟಿಂಗ್‌ಗಳು|रेटिंग|రేటింగ్‌లు|மதிப்பீடுகள்",
+"General Physician":"ಸಾಮಾನ್ಯ ವೈದ್ಯರು|सामान्य चिकित्सक|జనరల్ ఫిజీషియన్|பொது மருத்துவர்",
+"Family Medicine":"ಕುಟುಂಬ ವೈದ್ಯಕೀಯ|पारिवारिक चिकित्सा|ఫ్యామిలీ మెడిసిన్|குடும்ப மருத்துவம்",
+"Internal Medicine":"ಆಂತರಿಕ ವೈದ್ಯಕೀಯ|आंतरिक चिकित्सा|ఇంటర్నల్ మెడిసిన్|உள் மருத்துவம்",
+"Consultation mode":"ಸಲಹೆಯ ವಿಧಾನ|सलाह का तरीका|సంప్రదింపు విధానం|ஆலோசனை முறை",
+"Audio call":"ಆಡಿಯೋ ಕರೆ|ऑडियो कॉल|ఆడియో కాల్|ஆடியோ அழைப்பு","Video call":"ವೀಡಿಯೋ ಕರೆ|वीडियो कॉल|వీడియో కాల్|வீடியோ அழைப்பு","Chat":"ಚಾಟ್|चैट|చాట్|அரட்டை",
+"Please choose a doctor.":"ದಯವಿಟ್ಟು ವೈದ್ಯರನ್ನು ಆಯ್ಕೆಮಾಡಿ.|कृपया डॉक्टर चुनें।|దయచేసి వైద్యుడిని ఎంచుకోండి.|தயவுசெய்து மருத்துவரைத் தேர்ந்தெடுங்கள்.",
+"Consultation fee":"ಸಲಹಾ ಶುಲ್ಕ|परामर्श शुल्क|సంప్రదింపు రుసుము|ஆலோசனைக் கட்டணம்",
+"Payment method":"ಪಾವತಿ ವಿಧಾನ|भुगतान का तरीका|చెల్లింపు విధానం|கட்டண முறை",
+"Card":"ಕಾರ್ಡ್|कार्ड|కార్డ్|கார்டு","PhonePe":"ಫೋನ್‌ಪೇ|फोनपे|ఫోన్‌పే|போன்பே","Google Pay":"ಗೂಗಲ್ ಪೇ|गूगल पे|గూగుల్ పే|கூகுள் பே","Cash on Delivery":"ಕ್ಯಾಶ್ ಆನ್ ಡೆಲಿವರಿ|कैश ऑन डिलीवरी|క్యాష్ ఆన్ డెలివరీ|கேஷ் ஆன் டெலிவரி",
+"Pay":"ಪಾವತಿಸಿ|भुगतान करें|చెల్లించండి|செலுத்துங்கள்",
+"Processing payment...":"ಪಾವತಿ ಪ್ರಕ್ರಿಯೆಗೊಳ್ಳುತ್ತಿದೆ...|भुगतान प्रोसेस हो रहा है...|చెల్లింపు ప్రాసెస్ అవుతోంది...|கட்டணம் செயலாக்கப்படுகிறது...",
+"Payment successful!":"ಪಾವತಿ ಯಶಸ್ವಿ!|भुगतान सफल!|చెల్లింపు విజయవంతం!|கட்டணம் வெற்றி!",
+"via":"ಮೂಲಕ|के माध्यम से|ద్వారా|மூலம்",
+"Your consultation":"ನಿಮ್ಮ ಸಲಹೆ|आपकी सलाह|మీ సంప్రదింపు|உங்கள் ஆலோசனை",
+"AI is analyzing your symptoms…":"ಎಐ ನಿಮ್ಮ ಲಕ್ಷಣಗಳನ್ನು ವಿಶ್ಲೇಷಿಸುತ್ತಿದೆ…|एआई आपके लक्षणों का विश्लेषण कर रहा है…|ఏఐ మీ లక్షణాలను విశ్లేషిస్తోంది…|AI உங்கள் அறிகுறிகளை ஆராய்கிறது…",
+"Duration / severity":"ಅವಧಿ / ತೀವ್ರತೆ|अवधि / गंभीरता|వ్యవధి / తీవ్రత|காலம் / தீவிரம்",
+"AI assistance":"ಎಐ ಸಹಾಯ|एआई सहायता|ఏఐ సహాయం|AI உதவி",
+"Doctor's review (final clinical advice)":"ವೈದ್ಯರ ಪರಿಶೀಲನೆ (ಅಂತಿಮ ವೈದ್ಯಕೀಯ ಸಲಹೆ)|डॉक्टर की समीक्षा (अंतिम चिकित्सा सलाह)|వైద్యుని సమీక్ష (తుది వైద్య సలహా)|மருத்துவர் மதிப்பாய்வு (இறுதி மருத்துவ ஆலோசனை)",
+"Please follow the doctor's advice and seek medical attention if symptoms worsen.":"ದಯವಿಟ್ಟು ವೈದ್ಯರ ಸಲಹೆ ಪಾಲಿಸಿ; ಲಕ್ಷಣ ಹೆಚ್ಚಾದರೆ ತಕ್ಷಣ ವೈದ್ಯಕೀಯ ಸಹಾಯ ಪಡೆಯಿರಿ.|कृपया डॉक्टर की सलाह मानें; लक्षण बढ़ें तो तुरंत इलाज लें।|దయచేసి వైద్యుని సలహా పాటించండి; లక్షణాలు పెరిగితే వెంటనే వైద్య సహాయం తీసుకోండి.|மருத்துவர் ஆலோசனையைப் பின்பற்றுங்கள்; அறிகுறிகள் அதிகரித்தால் உடனே மருத்துவ உதவி பெறுங்கள்.",
+"Urgent: go to the nearest hospital or call emergency services now.":"ತುರ್ತು: ಈಗಲೇ ಹತ್ತಿರದ ಆಸ್ಪತ್ರೆಗೆ ಹೋಗಿ ಅಥವಾ ತುರ್ತು ಸೇವೆಗೆ ಕರೆ ಮಾಡಿ.|जरूरी: अभी नजदीकी अस्पताल जाएं या आपातकालीन सेवा को कॉल करें।|అత్యవసరం: వెంటనే సమీప ఆసుపత్రికి వెళ్లండి లేదా అత్యవసర సేవకు కాల్ చేయండి.|அவசரம்: உடனே அருகிலுள்ள மருத்துவமனைக்குச் செல்லுங்கள் அல்லது அவசர சேவையை அழையுங்கள்.",
+"High":"ಹೆಚ್ಚು|उच्च|అధికం|அதிகம்","Medium":"ಮಧ್ಯಮ|मध्यम|మధ్యస్థం|நடுத்தரம்","Low":"ಕಡಿಮೆ|कम|తక్కువ|குறைவு",
+"Possible Cardiac Concern":"ಹೃದಯ ಸಂಬಂಧಿ ಸಮಸ್ಯೆಯ ಸಾಧ್ಯತೆ|संभावित हृदय संबंधी समस्या|గుండె సంబంధిత సమస్య అవకాశం|இதய தொடர்பான பிரச்சினை சாத்தியம்",
+"Respiratory Infection":"ಉಸಿರಾಟದ ಸೋಂಕು|श्वसन संक्रमण|శ్వాసకోశ ఇన్ఫెక్షన్|சுவாசத் தொற்று",
+"Viral Fever":"ವೈರಲ್ ಜ್ವರ|वायरल बुखार|వైరల్ జ్వరం|வைரஸ் காய்ச்சல்",
+"Acute Gastroenteritis":"ತೀವ್ರ ಜಠರಕರುಳಿನ ಸೋಂಕು|तीव्र गैस्ट्रोएंटेराइटिस|తీవ్ర జీర్ణకోశ ఇన్ఫెక్షన్|கடுமையான இரைப்பைக் குடல் அழற்சி",
+"Migraine":"ಮೈಗ್ರೇನ್|माइग्रेन|మైగ్రేన్|ஒற்றைத் தலைவலி",
+"Common Cold":"ಸಾಮಾನ್ಯ ಶೀತ|सामान्य सर्दी|సాధారణ జలుబు|சாதாரண சளி",
+"Nonspecific Viral Syndrome":"ನಿರ್ದಿಷ್ಟವಲ್ಲದ ವೈರಲ್ ಲಕ್ಷಣ|अविशिष्ट वायरल लक्षण|నిర్దిష్టం కాని వైరల్ లక్షణాలు|குறிப்பிட்டதல்லாத வைரஸ் அறிகுறிகள்",
+"Symptom pattern suggests a possible cardiac issue. Needs urgent medical evaluation.":"ಲಕ್ಷಣಗಳು ಹೃದಯ ಸಮಸ್ಯೆಯ ಸಾಧ್ಯತೆ ತೋರಿಸುತ್ತಿವೆ. ತುರ್ತು ವೈದ್ಯಕೀಯ ಪರೀಕ್ಷೆ ಅಗತ್ಯ.|लक्षण हृदय की समस्या की ओर इशारा करते हैं। तुरंत डॉक्टरी जांच जरूरी है।|లక్షణాలు గుండె సమస్యను సూచిస్తున్నాయి. వెంటనే వైద్య పరీక్ష అవసరం.|அறிகுறிகள் இதயப் பிரச்சினையை சுட்டுகின்றன. உடனடி மருத்துவ பரிசோதனை தேவை.",
+"Fever, cough and breathlessness together can indicate a chest infection.":"ಜ್ವರ, ಕೆಮ್ಮು ಮತ್ತು ಉಸಿರಾಟದ ತೊಂದರೆ ಒಟ್ಟಿಗೆ ಇದ್ದರೆ ಎದೆಯ ಸೋಂಕು ಇರಬಹುದು.|बुखार, खांसी और सांस फूलना साथ हों तो छाती का संक्रमण हो सकता है।|జ్వరం, దగ్గు, ఊపిరి ఆడకపోవడం కలిసి ఉంటే ఛాతీ ఇన్ఫెక్షన్ కావచ్చు.|காய்ச்சல், இருமல், மூச்சுத் திணறல் சேர்ந்து இருந்தால் நெஞ்சுத் தொற்றாக இருக்கலாம்.",
+"Fever with joint pain and fatigue can match a viral fever pattern.":"ಜ್ವರದ ಜೊತೆ ಕೀಲು ನೋವು ಮತ್ತು ಆಯಾಸ ವೈರಲ್ ಜ್ವರದ ಮಾದರಿಗೆ ಹೊಂದುತ್ತದೆ.|बुखार के साथ जोड़ों का दर्द और थकान वायरल बुखार जैसी है।|జ్వరంతో కీళ్ల నొప్పి, అలసట వైరల్ జ్వరానికి సరిపోతాయి.|காய்ச்சலுடன் மூட்டு வலி, சோர்வு வைரஸ் காய்ச்சலை ஒத்தது.",
+"These symptoms together often point to a stomach infection.":"ಈ ಲಕ್ಷಣಗಳು ಒಟ್ಟಿಗೆ ಇದ್ದರೆ ಹೊಟ್ಟೆಯ ಸೋಂಕು ಇರುವ ಸಾಧ್ಯತೆ ಹೆಚ್ಚು.|ये लक्षण साथ हों तो अक्सर पेट का संक्रमण होता है।|ఈ లక్షణాలు కలిసి ఉంటే తరచుగా కడుపు ఇన్ఫెక్షన్ అని సూచిస్తాయి.|இந்த அறிகுறிகள் சேர்ந்தால் பெரும்பாலும் வயிற்றுத் தொற்றைக் குறிக்கும்.",
+"This symptom pattern is commonly seen with migraine.":"ಈ ಲಕ್ಷಣಗಳು ಸಾಮಾನ್ಯವಾಗಿ ಮೈಗ್ರೇನ್‌ನಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.|ये लक्षण आमतौर पर माइग्रेन में दिखते हैं।|ఈ లక్షణాలు సాధారణంగా మైగ్రేన్‌లో కనిపిస్తాయి.|இந்த அறிகுறிகள் பொதுவாக ஒற்றைத் தலைவலியில் காணப்படும்.",
+"Fever, sore throat and cough can occur with a common viral cold.":"ಜ್ವರ, ಗಂಟಲು ನೋವು ಮತ್ತು ಕೆಮ್ಮು ಸಾಮಾನ್ಯ ವೈರಲ್ ಶೀತದಲ್ಲಿ ಬರಬಹುದು.|बुखार, गले में खराश और खांसी सामान्य वायरल सर्दी में हो सकती है।|జ్వరం, గొంతు నొప్పి, దగ్గు సాధారణ వైరల్ జలుబులో రావచ్చు.|காய்ச்சல், தொண்டை வலி, இருமல் சாதாரண வைரஸ் சளியில் வரலாம்.",
+"Symptoms do not strongly match a known pattern. Rest, fluids and monitoring are advised.":"ಲಕ್ಷಣಗಳು ಯಾವುದೇ ನಿರ್ದಿಷ್ಟ ಮಾದರಿಗೆ ಹೊಂದುತ್ತಿಲ್ಲ. ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ, ನೀರು ಕುಡಿಯಿರಿ, ಗಮನಿಸಿ.|लक्षण किसी ज्ञात पैटर्न से मेल नहीं खाते। आराम करें, तरल पिएं और निगरानी रखें।|లక్షణాలు తెలిసిన నమూనాకు సరిపోవడం లేదు. విశ్రాంతి, ద్రవాలు తీసుకోండి, గమనించండి.|அறிகுறிகள் தெரிந்த வடிவத்துடன் பொருந்தவில்லை. ஓய்வெடுங்கள், திரவங்கள் குடியுங்கள், கவனியுங்கள்.",
+"Your medicine schedule":"ನಿಮ್ಮ ಔಷಧಿ ವೇಳಾಪಟ್ಟಿ|आपकी दवा अनुसूची|మీ మందుల షెడ్యూల్|உங்கள் மருந்து அட்டவணை",
+"Medicine":"ಔಷಧಿ|दवा|మందు|மருந்து","Dosage":"ಡೋಸ್|खुराक|మోతాదు|அளவு","Time":"ಸಮಯ|समय|సమయం|நேரம்","Days":"ದಿನಗಳು|दिन|రోజులు|நாட்கள்","Price":"ಬೆಲೆ|कीमत|ధర|விலை","Remind":"ರಿಮೈಂಡರ್|रिमाइंडर|రిమైండర్|நினைவூட்டல்",
+"Take medicines only as prescribed by your doctor.":"ವೈದ್ಯರು ಹೇಳಿದಂತೆ ಮಾತ್ರ ಔಷಧಿ ತೆಗೆದುಕೊಳ್ಳಿ.|दवा केवल डॉक्टर के बताए अनुसार लें।|వైద్యుడు చెప్పినట్లే మందులు వాడండి.|மருத்துவர் கூறியபடி மட்டுமே மருந்துகளை எடுங்கள்.",
+"Order medicines":"ಔಷಧಿ ಆರ್ಡರ್ ಮಾಡಿ|दवा ऑर्डर करें|మందులు ఆర్డర్ చేయండి|மருந்துகளை ஆர்டர் செய்யுங்கள்",
+"Morning":"ಬೆಳಿಗ್ಗೆ|सुबह|ఉదయం|காலை","Afternoon":"ಮಧ್ಯಾಹ್ನ|दोपहर|మధ్యాహ్నం|மதியம்","Evening":"ಸಂಜೆ|शाम|సాయంత్రం|மாலை","Night":"ರಾತ್ರಿ|रात|రాత్రి|இரவு",
+"As prescribed by doctor":"ವೈದ್ಯರು ಹೇಳಿದಂತೆ|डॉक्टर के अनुसार|వైద్యుడు చెప్పినట్లు|மருத்துவர் கூறியபடி",
+"1 tablet, once daily":"1 ಮಾತ್ರೆ, ದಿನಕ್ಕೆ ಒಮ್ಮೆ|1 गोली, दिन में एक बार|1 మాత్ర, రోజుకు ఒకసారి|1 மாத்திரை, தினமும் ஒரு முறை",
+"10 ml, three times a day":"10 ಮಿಲಿ, ದಿನಕ್ಕೆ ಮೂರು ಬಾರಿ|10 मिली, दिन में तीन बार|10 మి.లీ, రోజుకు మూడుసార్లు|10 மி.லி, தினமும் மூன்று முறை",
+"1 tablet, four times a day":"1 ಮಾತ್ರೆ, ದಿನಕ್ಕೆ ನಾಲ್ಕು ಬಾರಿ|1 गोली, दिन में चार बार|1 మాత్ర, రోజుకు నాలుగుసార్లు|1 மாத்திரை, தினமும் நான்கு முறை",
+"1 sachet in 1 litre water":"1 ಲೀಟರ್ ನೀರಿಗೆ 1 ಪ್ಯಾಕೆಟ್|1 लीटर पानी में 1 पैकेट|1 లీటరు నీటిలో 1 ప్యాకెట్|1 லிட்டர் தண்ணீரில் 1 பாக்கெட்",
+"As needed after loose motion":"ಭೇದಿಯ ನಂತರ ಬೇಕಾದಾಗ|दस्त के बाद जरूरत अनुसार|విరేచనాల తర్వాత అవసరమైనప్పుడు|வயிற்றுப்போக்குக்குப் பின் தேவைப்படும்போது",
+"Cough Syrup":"ಕೆಮ್ಮಿನ ಸಿರಪ್|खांसी की सिरप|దగ్గు సిరప్|இருமல் சிரப்","ORS Sachet":"ಒಆರ್‌ಎಸ್ ಪ್ಯಾಕೆಟ್|ओआरएस पैकेट|ఓఆర్‌ఎస్ ప్యాకెట్|ORS பாக்கெட்",
+"Nearby medical shops":"ಹತ್ತಿರದ ಮೆಡಿಕಲ್ ಅಂಗಡಿಗಳು|पास की मेडिकल दुकानें|సమీప మెడికల్ షాపులు|அருகிலுள்ள மருந்துக் கடைகள்",
+"Please choose a shop.":"ದಯವಿಟ್ಟು ಅಂಗಡಿ ಆಯ್ಕೆಮಾಡಿ.|कृपया दुकान चुनें।|దయచేసి షాపును ఎంచుకోండి.|தயவுசெய்து கடையைத் தேர்ந்தெடுங்கள்.",
+"Prep":"ಸಿದ್ಧತೆ|तैयारी|సిద్ధత|தயாரிப்பு","min":"ನಿಮಿಷ|मिनट|నిమిషాలు|நிமிடம்","Est. delivery":"ಅಂದಾಜು ಡೆಲಿವರಿ|अनुमानित डिलीवरी|అంచనా డెలివరీ|மதிப்பிடப்பட்ட விநியோகம்",
+"Your order":"ನಿಮ್ಮ ಆರ್ಡರ್|आपका ऑर्डर|మీ ఆర్డర్|உங்கள் ஆர்டர்",
+"Medicine charge":"ಔಷಧಿ ಶುಲ್ಕ|दवा का शुल्क|మందుల ఛార్జీ|மருந்து கட்டணம்","Delivery charge":"ಡೆಲಿವರಿ ಶುಲ್ಕ|डिलीवरी शुल्क|డెలివరీ ఛార్జీ|விநியோகக் கட்டணம்","Total to pay":"ಒಟ್ಟು ಪಾವತಿ|कुल भुगतान|మొత్తం చెల్లింపు|மொத்த தொகை",
+"Delivery tracking":"ಡೆಲಿವರಿ ಟ್ರ್ಯಾಕಿಂಗ್|डिलीवरी ट्रैकिंग|డెలివరీ ట్రాకింగ్|விநியோகக் கண்காணிப்பு",
+"Delivery partner":"ಡೆಲಿವರಿ ಪಾಲುದಾರ|डिलीवरी पार्टनर|డెలివరీ భాగస్వామి|விநியோக பங்காளர்",
+"Estimated delivery time":"ಅಂದಾಜು ಡೆಲಿವರಿ ಸಮಯ|अनुमानित डिलीवरी समय|అంచనా డెలివరీ సమయం|மதிப்பிடப்பட்ட விநியோக நேரம்",
+"left":"ಬಾಕಿ|बाकी|మిగిలింది|மீதம்",
+"Order received":"ಆರ್ಡರ್ ಸ್ವೀಕರಿಸಲಾಗಿದೆ|ऑर्डर मिला|ఆర్డర్ స్వీకరించబడింది|ஆர்டர் பெறப்பட்டது",
+"Shop preparing / picked up":"ಅಂಗಡಿ ತಯಾರಿಸುತ್ತಿದೆ / ಎತ್ತಿಕೊಂಡಿದೆ|दुकान तैयार कर रही है / उठाया गया|షాపు సిద్ధం చేస్తోంది / తీసుకున్నారు|கடை தயாரிக்கிறது / எடுக்கப்பட்டது",
+"Delivery boy nearby":"ಡೆಲಿವರಿ ಬಾಯ್ ಹತ್ತಿರದಲ್ಲಿದ್ದಾರೆ|डिलीवरी बॉय पास में है|డెలివరీ బాయ్ దగ్గరలో ఉన్నారు|விநியோகப் பணியாளர் அருகில் உள்ளார்",
+"Delivered":"ತಲುಪಿಸಲಾಗಿದೆ|डिलीवर हुआ|డెలివరీ అయింది|விநியோகிக்கப்பட்டது",
+"Your order has been delivered.":"ನಿಮ್ಮ ಆರ್ಡರ್ ತಲುಪಿದೆ.|आपका ऑर्डर पहुंच गया।|మీ ఆర్డర్ చేరింది.|உங்கள் ஆர்டர் வந்துவிட்டது.",
+"Give feedback":"ಪ್ರತಿಕ್ರಿಯೆ ನೀಡಿ|प्रतिक्रिया दें|అభిప్రాయం ఇవ్వండి|கருத்து தெரிவிக்கவும்",
+"Feedback":"ಪ್ರತಿಕ್ರಿಯೆ|प्रतिक्रिया|అభిప్రాయం|கருத்து",
+"Rate app experience":"ಆ್ಯಪ್ ಅನುಭವಕ್ಕೆ ರೇಟಿಂಗ್ ನೀಡಿ|ऐप अनुभव को रेट करें|యాప్ అనుభవానికి రేటింగ్ ఇవ్వండి|ஆப் அனுபவத்தை மதிப்பிடுங்கள்",
+"Rate doctor consultation":"ವೈದ್ಯರ ಸಲಹೆಗೆ ರೇಟಿಂಗ್ ನೀಡಿ|डॉक्टर परामर्श को रेट करें|వైద్య సంప్రదింపుకు రేటింగ్ ఇవ్వండి|மருத்துவர் ஆலோசனையை மதிப்பிடுங்கள்",
+"Rate delivery experience":"ಡೆಲಿವರಿ ಅನುಭವಕ್ಕೆ ರೇಟಿಂಗ್ ನೀಡಿ|डिलीवरी अनुभव को रेट करें|డెలివరీ అనుభవానికి రేటింగ్ ఇవ్వండి|விநியோக அனுபவத்தை மதிப்பிடுங்கள்",
+"Any additional comments? (optional)":"ಇನ್ನೇನಾದರೂ ಹೇಳಲು ಬಯಸುವಿರಾ? (ಐಚ್ಛಿಕ)|कुछ और कहना है? (वैकल्पिक)|ఇంకేమైనా చెప్పాలా? (ఐచ్ఛికం)|வேறு கருத்துகள்? (விருப்பம்)",
+"Submit feedback":"ಪ್ರತಿಕ್ರಿಯೆ ಸಲ್ಲಿಸಿ|प्रतिक्रिया भेजें|అభిప్రాయం సమర్పించండి|கருத்தைச் சமர்ப்பிக்கவும்",
+"Thank you for your feedback!":"ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಗೆ ಧನ್ಯವಾದಗಳು!|आपकी प्रतिक्रिया के लिए धन्यवाद!|మీ అభిప్రాయానికి ధన్యవాదాలు!|உங்கள் கருத்துக்கு நன்றி!",
+"Thank you for using MediBOT. Stay healthy!":"ಮೆಡಿಬಾಟ್ ಬಳಸಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದಗಳು. ಆರೋಗ್ಯವಾಗಿರಿ!|मेडीबॉट का उपयोग करने के लिए धन्यवाद। स्वस्थ रहें!|మెడిబాట్ వాడినందుకు ధన్యవాదాలు. ఆరోగ్యంగా ఉండండి!|மெடிபாட்டைப் பயன்படுத்தியதற்கு நன்றி. ஆரோக்கியமாக இருங்கள்!",
+"Back to dashboard":"ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ|डैशबोर्ड पर वापस|డ్యాష్‌బోర్డ్‌కు తిరిగి|டாஷ்போர்டுக்குத் திரும்பு",
+"Account":"ಖಾತೆ|खाता|ఖాతా|கணக்கு","Fee":"ಶುಲ್ಕ|शुल्क|రుసుము|கட்டணம்","AI + Doctor":"ಎಐ + ವೈದ್ಯರು|एआई + डॉक्टर|ఏఐ + వైద్యుడు|AI + மருத்துவர்","Medicines":"ಔಷಧಿಗಳು|दवाइयाँ|మందులు|மருந்துகள்","Pharmacy":"ಅಂಗಡಿ|दुकान|షాపు|கடை","Payment":"ಪಾವತಿ|भुगतान|చెల్లింపు|கட்டணம்","Delivery":"ಡೆಲಿವರಿ|डिलीवरी|డెలివరీ|விநியோகம்"
+};
+const LI={kn:0,hi:1,te:2,ta:3};
+const tr=s=>{if(S.lang==="en")return s;const v=D[s];return v?v.split("|")[LI[S.lang]]:s};
+const tm=s=>s.split("/").map(tr).join("/");
+
+const SYM=["Fever","Cough","Sore throat","Headache","Nausea","Vomiting","Diarrhea","Breathlessness","Chest pain","Fatigue","Joint pain","Rash","Sensitivity to light","Stomach pain"];
+const C1="Rest well and drink plenty of fluids.",C2="Eat light, home-cooked food.",C3="Sip ORS slowly after every loose stool or vomit.",C4="Do not take ibuprofen or aspirin for fever.",C5="Gargle with warm salt water and take steam.",C6="Rest in a dark, quiet room.",C7="Apply a warm compress on the painful area.",C8="Do not scratch; keep the skin clean and dry.",C9="Avoid spicy, oily food; do not lie down right after eating.";
+const W1="Go to a hospital if fever lasts more than 3 days.",W2="Go to a hospital if you cannot drink fluids, pass very little urine, or feel very weak or dizzy.",W3="Go to a hospital if there is blood in stool or vomit, black stool, or severe stomach pain.",W5="Go to a hospital if there is a sudden severe headache, weakness, vision loss, confusion or stiff neck.",W6="Go to a hospital if the face, lips or throat swell, or you feel breathless.",W7="See a doctor if it does not improve in 3 days.";
+const EM=["Call 108 (ambulance) or 112 now.","Sit upright, stay calm and do not exert yourself.","Do not drive yourself; ask someone to take you to the nearest hospital.","Do not take any medicine on your own unless a doctor tells you."];
+const ALL4="Morning/Afternoon/Evening/Night";
+const PA={n:"Paracetamol 650mg",dos:"1 tablet every 6 hours if fever or pain (max 4 a day)",t:ALL4,days:3,p:25};
+const ORS={n:"ORS Sachet",dos:"1 sachet in 1 litre clean water; sip after each loose stool",t:ALL4,days:3,p:30};
+const CET={n:"Cetirizine 10mg",dos:"1 tablet at night",t:"Night",days:3,p:20};
+const CAL={n:"Calamine Lotion",dos:"Apply on the rash 2–3 times a day",t:"Morning/Evening",days:5,p:55};
+const ANT={n:"Antacid Syrup",dos:"10 ml after meals, up to 3 times a day",t:"Morning/Afternoon/Night",days:3,p:70};
+const LOZ={n:"Throat Lozenges",dos:"1 lozenge every 3–4 hours (max 6 a day)",t:ALL4,days:4,p:45};
+const GEL={n:"Diclofenac Gel",dos:"Thin layer on the painful area, up to 3 times a day",t:"Morning/Afternoon/Night",days:5,p:90};
+/* Demo knowledge base. Over-the-counter, adult advice only; High risk = no self-medication. Must be reviewed by a doctor before real use. */
+const KB=[
+{m:["Chest pain","Breathlessness"],min:1,d:"Serious Chest or Breathing Problem",r:"High",med:[],care:EM,warn:[]},
+{m:["Fever","Cough","Breathlessness"],min:3,d:"Chest Infection (possible pneumonia)",r:"High",med:[],care:EM,warn:[]},
+{m:["Fever","Headache","Sensitivity to light"],min:3,d:"Fever with Severe Headache",r:"High",med:[],care:EM,warn:[]},
+{m:["Fever","Joint pain","Fatigue"],min:2,d:"Viral Fever",r:"Medium",med:[PA,ORS],care:[C1,C2,C4],warn:[W1,W2]},
+{m:["Fever","Rash"],min:2,d:"Fever with Rash",r:"Medium",med:[PA,CAL],care:[C1,C8],warn:[W1,W6]},
+{m:["Stomach pain","Vomiting","Diarrhea","Nausea"],min:2,d:"Acute Gastroenteritis",r:"Medium",med:[ORS],care:[C3,C2],warn:[W3,W2]},
+{m:["Headache","Nausea","Sensitivity to light"],min:2,d:"Migraine",r:"Low",med:[PA],care:[C6,C1],warn:[W5]},
+{m:["Fever","Sore throat","Cough"],min:2,d:"Common Cold",r:"Low",med:[PA,LOZ],care:[C1,C5],warn:[W7]},
+{m:["Fever"],min:1,d:"Fever",r:"Low",med:[PA],care:[C1,C4],warn:[W1]},
+{m:["Headache"],min:1,d:"Tension Headache",r:"Low",med:[PA],care:[C1,C6],warn:[W5]},
+{m:["Sore throat","Cough"],min:1,d:"Throat Infection",r:"Low",med:[LOZ],care:[C5,C1],warn:[W7]},
+{m:["Stomach pain"],min:1,d:"Acidity / Stomach Pain",r:"Low",med:[ANT],care:[C9],warn:[W3]},
+{m:["Diarrhea","Vomiting","Nausea"],min:1,d:"Stomach Upset",r:"Low",med:[ORS],care:[C3,C2],warn:[W3,W2]},
+{m:["Joint pain"],min:1,d:"Body Pain / Weakness",r:"Low",med:[GEL,PA],care:[C7,C1],warn:[W7]},
+{m:["Fatigue"],min:1,d:"Body Pain / Weakness",r:"Low",med:[],care:[C1,C2],warn:[W7]},
+{m:["Rash"],min:1,d:"Skin Allergy",r:"Low",med:[CET,CAL],care:[C8],warn:[W6]}];
+const DEF={m:[],d:"Nonspecific Viral Syndrome",r:"Low",note:"Symptoms do not strongly match a known pattern. Rest, fluids and monitoring are advised.",med:[],care:[C1,C2],warn:[W7]};
+const DOCS=[
+{n:"Dr. Ananya Rao",s:"General Physician",e:"MBBS, MD",r:4.8,c:326},
+{n:"Dr. Vikram Shetty",s:"General Physician",e:"MBBS",r:4.6,c:210},
+{n:"Dr. Priya Nair",s:"Family Medicine",e:"MBBS",r:4.7,c:280},
+{n:"Dr. Fathima Sheikh",s:"Internal Medicine",e:"MBBS, DNB",r:4.9,c:412,at:"6:30 PM"},
+{n:"Dr. Rohan Gowda",s:"General Physician",e:"MBBS, MD",r:4.5,c:150,at:"7:00 PM"}];
+const SHOPS=[{n:"Sri Ganesh Medicals",km:0.6,prep:8,r:4.6},{n:"Apollo Pharmacy",km:1.1,prep:10,r:4.4},{n:"Village Health Store",km:1.8,prep:12,r:4.2}];
+const BOYS=[{n:"Manjunath R.",ph:"+91 98450 11223",v:"Bike KA-05 XX 1234"},{n:"Suresh K.",ph:"+91 99860 44556",v:"Bike KA-09 XX 5678"},{n:"Ravi P.",ph:"+91 97410 77889",v:"Bike KA-03 XX 9012"}];
+const travel=km=>Math.max(3,Math.round(km/20*60));
+const RK={High:3,Medium:2,Low:1};
+const predict=(sy,sev)=>{let best=null,bs=[0,0];KB.forEach(r=>{const c=r.m.filter(x=>sy.includes(x)).length;if(c>=r.min){const k=RK[r.r];if(k>bs[0]||(k===bs[0]&&c>bs[1])){best=r;bs=[k,c]}}});
+  const res={...(best||DEF),raised:false};
+  if(sev==="Severe"&&res.r!=="High"){res.r=res.r==="Low"?"Medium":"High";res.raised=true;if(res.r==="High"){res.med=[];res.care=EM;res.warn=[]}}
+  return res};
+
+const S={lang:"en",more:false,step:-1,name:"Friend",sel:[],visit:{},doc:null,mode:"Chat",pay:"Card",res:null,shop:null,total:0,hist:[],rate:{app:0,doc:0,del:0},reminders:{}};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let timer=null;
+
+function stepper(){
+  const el=$("#steps");
+  if(S.step<1||S.step>10){el.style.display="none";return}
+  el.style.display="flex";
+  el.innerHTML=["Account","Symptoms","Doctor","Fee","AI + Doctor","Medicines","Pharmacy","Payment","Delivery","Feedback"].map((x,i)=>`<i class="${i+1===S.step?"on":i+1<S.step?"done":""}">${tr(x)}</i>`).join("");
+}
+function go(n){clearInterval(timer);S.step=n;render();window.scrollTo(0,0)}
+function render(){
+  $("#hn").textContent=tr("MediBOT");$("#ht").textContent=tr("AI-Powered Healthcare Assistant");
+  $("#ft").textContent=S.step>-1?tr("Demo project – not a substitute for a real doctor."):"";
+  document.documentElement.lang=S.lang;
+  stepper();
+  const v=[vDash,vAuth,vSym,vDoc,vFee,vConsult,vMeds,vShop,vPay,vTrack,vFb];
+  $("#app").innerHTML=S.step===-1?vLang():S.step===99?vHist():S.step===98?vCall():S.step===97?vChat():v[S.step]();
+  if(S.step===5)runConsult();
+  if(S.step===9)runTrack();addMics();$("#vbtn").textContent="🔊 "+tr("Voice")+(S.voice?" ✓":"");if(S.step===98)runCall();if(S.step===97)runChat();if(S.voice&&S.step>-1&&S.step!==5&&S.step!==9&&S.step!==98&&S.step!==97)setTimeout(readScreen,250);
+}
+const nav=(back,next,label)=>`<div>${back!=null?`<button class="go alt" onclick="go(${back})">${tr("Back")}</button>`:""}${next?`<button class="go" onclick="${next}">${label||tr("Continue")}</button>`:""}</div>`;
+const err=()=>`<p id="err" class="hint" style="color:var(--bad)" role="alert"></p>`;
+
+function vLang(){
+  const b=(c,l)=>`<button class="opt" onclick="setLang('${c}')">${l}</button>`;
+  return `<h2>ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ / Choose language / भाषा चुनें</h2><div class="card">
+${S.more?b("te","తెలుగు (Telugu)")+b("ta","தமிழ் (Tamil)")+`<button class="go alt" onclick="S.more=false;render()" style="margin-left:0">${"← ಹಿಂದೆ / Back"}</button>`
+:b("kn","ಕನ್ನಡ (Kannada)")+b("en","English")+b("hi","हिन्दी (Hindi)")+`<button class="opt" onclick="S.more=true;render()">ಇತರೆ / Others… <small>తెలుగు, தமிழ்</small></button>`}</div>`}
+function setLang(l){S.lang=l;go(1)}
+
+function vAuth(){return `<h2>${tr("Create your account")}</h2><div class="card">
+<label for="ph">${tr("Phone number (10 digits)")}</label><input id="ph" inputmode="numeric" maxlength="10" placeholder="9876543210">
+<label for="nm">${tr("Full name")}</label><input id="nm">
+<label for="otp">${tr("OTP (demo: 1234)")}</label><input id="otp" inputmode="numeric" maxlength="4">
+<label for="p1">${tr("Create a password")}</label><input id="p1" type="password">
+<label for="p2">${tr("Confirm password")}</label><input id="p2" type="password">
+<label><input type="checkbox" style="width:auto"> ${tr("Allow location access")}</label>
+${err()}${nav(-1,"doAuth()")}</div>`}
+function doAuth(){
+  const g=i=>$("#"+i).value.trim(),e=m=>{$("#err").textContent=tr(m)};
+  if(!/^\d{10}$/.test(g("ph")))return e("Enter a valid 10-digit phone number.");
+  if(g("otp")!=="1234")return e("Incorrect OTP. Try 1234.");
+  if(!g("p1")||g("p1")!==g("p2"))return e("Passwords don't match.");
+  S.name=g("nm")||"Friend";go(0);
+}
+
+function vDash(){return `<h2>${tr("Dashboard")} – ${tr("Hi")}, ${esc(S.name==="Friend"?tr("Friend"):S.name)}</h2><div class="card">
+<p>${tr("MediBOT connects you with AI health guidance, real doctors, and medicine delivery.")}</p>
+<p class="hint">${S.hist.length} ${tr("past consultation(s) saved")}</p>
+<button class="go" onclick="newVisit()">${tr("New consultation")}</button>
+<button class="go alt" onclick="go(99)">${tr("Medical history")}</button></div>`}
+function newVisit(){S.sel=[];S.visit={};S.doc=null;S.res=null;S.shop=null;S.rate={app:0,doc:0,del:0};S.reminders={};go(2)}
+function vHist(){
+  const rows=S.hist.map((h,i)=>`<tr><td>${i+1}</td><td>${tr(h.res.d)}</td><td><span class="tag ${h.res.r}">${tr(h.res.r)}</span></td><td>${esc(tr(h.doc.n))}</td></tr>`).join("");
+  return `<h2>${tr("Medical history")}</h2><div class="card wrap">${S.hist.length?`<table><tr><th>#</th><th>${tr("Condition")}</th><th>${tr("Risk")}</th><th>${tr("Doctor")}</th></tr>${rows}</table>`:tr("No past consultations yet.")}</div>${nav(0)}`}
+
+function vSym(){return `<h2>${tr("Describe your symptoms")}</h2><div class="card">
+<div class="row">${SYM.map(s=>`<button class="chip ${S.sel.includes(s)?"on":""}" aria-pressed="${S.sel.includes(s)}" onclick="tog('${s}')">${tr(s)}</button>`).join("")}</div>
+<label for="free">${tr("Or describe in your own words")}</label><textarea id="free" rows="2"></textarea>
+<label for="dur">${tr("How long have you had this?")}</label><input id="dur" placeholder="${tr("e.g. 3 days")}">
+<label for="sev">${tr("Severity")}</label><select id="sev">${["Mild","Moderate","Severe"].map(x=>`<option value="${x}" ${x==="Moderate"?"selected":""}>${tr(x)}</option>`).join("")}</select>
+${err()}${nav(0,"saveSym()")}</div>`}
+function tog(s){const i=S.sel.indexOf(s);i<0?S.sel.push(s):S.sel.splice(i,1);const d=$("#dur").value,f=$("#free").value,sv=$("#sev").value;render();$("#dur").value=d;$("#free").value=f;$("#sev").value=sv}
+function saveSym(){matchSym($("#free").value).forEach(x=>{if(!S.sel.includes(x))S.sel.push(x)});
+  if(!S.sel.length&&!$("#free").value.trim())return $("#err").textContent=tr("Pick at least one symptom or describe it.");
+  S.visit={symptoms:S.sel.length?[...S.sel]:["Unknown"],free:$("#free").value.trim(),duration:$("#dur").value.trim(),severity:$("#sev").value};
+  go(3);
+}
+
+function docCard(d,i){return `<button class="opt ${S.doc===d?"on":""}" onclick="pickDoc(${i})"><b>${tr(d.n)}</b> – ${tr(d.s)}<small>${d.e} • ★ ${d.r} (${d.c} ${tr("ratings")}) • ${d.at?tr("Available at")+" "+d.at:tr("Available now")}</small></button>`}
+function vDoc(){
+  return `<h2>${tr("Choose a doctor")}</h2><h3>${tr("Available now")}</h3>${DOCS.map((d,i)=>d.at?"":docCard(d,i)).join("")}<h3>${tr("Available later")}</h3>${DOCS.map((d,i)=>d.at?docCard(d,i):"").join("")}
+<div class="card"><label for="mode">${tr("Consultation mode")}</label><select id="mode">${["Audio call","Video call","Chat"].map(m=>`<option value="${m}" ${S.mode===m?"selected":""}>${tr(m)}</option>`).join("")}</select>
+${err()}${nav(2,"saveDoc()")}</div>`}
+function pickDoc(i){S.mode=$("#mode").value;S.doc=DOCS[i];render()}
+function saveDoc(){S.mode=$("#mode").value;if(!S.doc)return $("#err").textContent=tr("Please choose a doctor.");go(4)}
+
+function payBox(cod){return `<label>${tr("Payment method")}</label>${["UPI","Card","PhonePe","Google Pay"].concat(cod?["Cash on Delivery"]:[]).map(x=>`<button class="opt ${S.pay===x?"on":""}" onclick="S.pay='${x}';render()">${x==="UPI"?tr("UPI (Scan QR)"):tr(x)}</button>`).join("")}`}
+function vFee(){return `<h2>${tr("Consultation fee")}</h2><div class="card"><p><b>${esc(tr(S.doc.n))}</b> – ${tr(S.doc.s)} • ${tr(S.mode)}</p>
+<p class="tot">₹${FEE}</p>${payBox(false)}<p id="ps" role="status"></p>${nav(3,"payFee()",tr("Pay")+" ₹"+FEE)}</div>`}
+function payFee(){payFlow(FEE,()=>go(S.mode==="Chat"?97:98))}
+
+function vConsult(){return `<h2>${tr("Your consultation")}</h2><div class="card" id="cbox"><p>${tr("AI is analyzing your symptoms…")}</p></div>`}
+function runConsult(){
+  setTimeout(()=>{
+    S.res=predict(S.visit.symptoms,S.visit.severity);const r=S.res,v=S.visit;
+    const ul=a=>"<ul>"+a.map(x=>"<li>"+x+"</li>").join("")+"</ul>";
+    const rl=r.r==="High"?"This may be serious. Get medical help right now.":r.r==="Medium"?"Please consult a doctor today.":"Usually mild. Home care is enough; see a doctor if it does not improve.";
+    $("#cbox").innerHTML=`<div class="wrap"><table>
+<tr><th>${tr("Doctor")}</th><td>${esc(tr(S.doc.n))} (${tr(S.doc.s)}) – ${tr(S.mode)}</td></tr>
+<tr><th>${tr("Symptoms")}</th><td>${v.symptoms.map(tr).join(", ")}${v.free?"<br><i>"+esc(v.free)+"</i>":""}</td></tr>
+<tr><th>${tr("Duration / severity")}</th><td>${esc(v.duration||"–")} / ${tr(v.severity)}</td></tr>
+<tr><th>${tr("Condition")}</th><td>${tr(r.d)}</td></tr>
+<tr><th>${tr("Risk")}</th><td><span class="tag ${r.r}">${tr(r.r)}</span></td></tr></table></div>
+${r.raised?`<p class="hint">${tr("Because severity is Severe, the risk level was raised.")}</p>`:""}
+<h3>${tr("AI assistance")}</h3><p>${r.note?tr(r.note):tr("Your symptoms match this pattern:")+" "+tr(r.d)}</p>
+<h3>${tr("Doctor's review (final clinical advice)")}</h3><p><b>${esc(tr(S.doc.n))}:</b> ${tr(rl)}</p>
+${r.r==="High"?`<div class="warn"><b>${tr("Urgent: go to the nearest hospital or call emergency services now.")}</b></div><h4>${tr("What to do now")}</h4>${ul(r.care.map(x=>tr(x)))}`:`${r.med.length?`<h4>${tr("What to take (OTC, adults)")}</h4>${ul(r.med.map(m=>tr(m.n)+" – "+tr(m.dos)))}<p class="hint">${tr("Over-the-counter medicines for adults. Children, pregnant women and people with other illnesses must ask a doctor first.")}</p>`:""}<h4>${tr("Care at home")}</h4>${ul(r.care.map(x=>tr(x)))}<h4>${tr("Get urgent help if")}</h4>${ul(r.warn.map(x=>tr(x)))}`}
+${nav(null,"go(6)")}`;addMics();if(S.voice)setTimeout(readScreen,200);
+  },1500);
+}
+
+function vMeds(){const r=S.res;
+  if(!r.med.length)return `<h2>${tr("Your medicine schedule")}</h2><div class="card"><p>${tr("No medicines are suggested for this condition. Follow the steps above and see a doctor first.")}</p>${nav(5,"go(10)",tr("Give feedback"))}</div>`;
+  return `<h2>${tr("Your medicine schedule")}</h2><div class="card wrap"><table><tr><th>${tr("Medicine")}</th><th>${tr("Dosage")}</th><th>${tr("Time")}</th><th>${tr("Days")}</th><th>${tr("Price")}</th><th>${tr("Remind")}</th></tr>
+${r.med.map((m,i)=>`<tr><td>${tr(m.n)}</td><td>${tr(m.dos)}</td><td>${tm(m.t)}</td><td>${m.days}</td><td>₹${m.p}</td><td><input type="checkbox" style="width:auto" aria-label="${tr("Remind")}" ${S.reminders[i]?"checked":""} onchange="S.reminders[${i}]=this.checked"></td></tr>`).join("")}</table>
+<div class="warn">${tr("Over-the-counter medicines for adults. Children, pregnant women and people with other illnesses must ask a doctor first.")}</div>${nav(5,"go(7)",tr("Order medicines"))}</div>`}
+
+function vShop(){return `<h2>${tr("Nearby medical shops")}</h2>${SHOPS.map((s,i)=>`<button class="opt ${S.shop===s?"on":""}" onclick="S.shop=SHOPS[${i}];render()"><b>${tr(s.n)}</b><small>${s.km} ${tr("km")} • ${tr("Prep")} ${s.prep} ${tr("min")} • ${tr("Est. delivery")} ${s.prep+travel(s.km)} ${tr("min")} • ★ ${s.r}</small></button>`).join("")}
+${err()}${nav(6,"if(S.shop)go(8);else $('#err').textContent=tr('Please choose a shop.')")}`}
+
+function vPay(){const sub=S.res.med.reduce((a,m)=>a+m.p,0);S.total=sub+DEL;return `<h2>${tr("Your order")} – ${tr(S.shop.n)}</h2><div class="card wrap"><table>
+${S.res.med.map(m=>`<tr><td>${tr(m.n)}</td><td>₹${m.p}</td></tr>`).join("")}
+<tr><td>${tr("Medicine charge")}</td><td>₹${sub}</td></tr><tr><td>${tr("Delivery charge")}</td><td>₹${DEL}</td></tr>
+<tr><th>${tr("Total to pay")}</th><td class="tot">₹${S.total}</td></tr></table>
+${payBox(true)}<p id="ps" role="status"></p>${nav(7,"payOrder()",tr("Pay")+" ₹"+S.total)}</div>`}
+function payOrder(){payFlow(S.total,()=>go(9))}
+
+function vTrack(){const b=BOYS[S.shop.n.length%BOYS.length],tot=S.shop.prep+travel(S.shop.km);
+  return `<h2>${tr("Delivery tracking")} – ${tr(S.shop.n)}</h2><div class="card"><p><b>${tr("Delivery partner")}:</b> ${tr(b.n)} • ${tr("Bike")} ${b.v.replace("Bike ","")} • ${b.ph}</p>
+<p>${tr("Estimated delivery time")}: <b>${tot} ${tr("min")}</b> – <span id="left"></span></p><div class="bar"><div id="fill"></div></div>
+${["Order received","Shop preparing / picked up","Delivery boy nearby","Delivered"].map((x,i)=>`<div class="stage" id="s${i}"><span class="dot"></span>${tr(x)}</div>`).join("")}
+<div id="after"></div></div>`}
+function runTrack(){
+  const tot=S.shop.prep+travel(S.shop.km);let i=0;
+  const tick=()=>{
+    $("#s"+i).classList.add("on");if(S.voice)say($("#s"+i).textContent);$("#fill").style.width=((i+1)/4*100)+"%";
+    $("#left").textContent=i===3?tr("Delivered"):"~"+Math.max(0,tot-Math.round((i+1)/4*tot))+" "+tr("min")+" "+tr("left");
+    i++;
+    if(i>=4){clearInterval(timer);$("#after").innerHTML=`<p>${tr("Your order has been delivered.")}</p>${nav(null,"go(10)",tr("Give feedback"))}`}
+  };
+  tick();timer=setInterval(tick,1300);
+}
+
+function stars(k,label){return `<label>${tr(label)}</label><div class="stars" role="group" aria-label="${tr(label)}">${[1,2,3,4,5].map(n=>`<button aria-label="${n}" class="${S.rate[k]>=n?"on":""}" onclick="S.rate['${k}']=${n};keepFb()">★</button>`).join("")}</div>`}
+function vFb(){return `<h2>${tr("Feedback")}</h2><div class="card">${stars("app","Rate app experience")}${stars("doc","Rate doctor consultation")}${stars("del","Rate delivery experience")}
+<label for="cm">${tr("Any additional comments? (optional)")}</label><textarea id="cm" rows="2"></textarea>${nav(null,"submitFb()",tr("Submit feedback"))}</div>`}
+function keepFb(){const c=$("#cm").value;render();$("#cm").value=c}
+function submitFb(){
+  S.hist.push({res:S.res,doc:S.doc,rate:{...S.rate},comment:$("#cm").value.trim()});
+  $("#app").innerHTML=`<h2>${tr("Thank you for your feedback!")}</h2><div class="card"><p>${tr("Thank you for using MediBOT. Stay healthy!")}</p>${nav(null,"go(0)",tr("Back to dashboard"))}</div>`;
+}
+/* ---- Voice assistant ---- */
+const LC={en:"en-IN",kn:"kn-IN",hi:"hi-IN",te:"te-IN",ta:"ta-IN"};
+function toast(m){const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display="none",4500)}
+function pickVoice(){const v=speechSynthesis.getVoices(),l=LC[S.lang];return v.find(x=>x.lang.replace("_","-")===l)||v.find(x=>x.lang.toLowerCase().startsWith(l.slice(0,2)))}
+function say(text){
+  if(!("speechSynthesis" in window)||typeof SpeechSynthesisUtterance==="undefined")return toast(tr(K_CHROME));
+  const ss=speechSynthesis;ss.cancel();
+  const run=()=>{
+    const v=pickVoice();
+    if(!v&&S.lang!=="en")toast(tr(K_NOVOICE));
+    (text.match(/[^.!?।]+[.!?।]?/g)||[text]).forEach(c=>{const u=new SpeechSynthesisUtterance(c.trim());u.lang=LC[S.lang];if(v)u.voice=v;u.rate=.92;u.onerror=e=>{if(e.error!=="canceled"&&e.error!=="interrupted")toast("Voice error: "+e.error)};ss.speak(u)});
+    ss.resume();
+  };
+  if(ss.getVoices().length)setTimeout(run,150);else{let d=false;const f=()=>{if(!d){d=true;run()}};ss.onvoiceschanged=f;setTimeout(f,800)}
+}
+function readScreen(){
+  if(S.step<0)return say("Choose your language");
+  const t=$("#app").innerText.replace(/[★•←]/g,"").replace(/\t/g,", ").replace(/\s*\n+\s*/g,". ");
+  say(t);
+}
+function replay(){readScreen()}
+function toggleVoice(){
+  S.voice=!S.voice;const b=$("#vbtn");b.classList.toggle("on",S.voice);b.setAttribute("aria-pressed",S.voice);b.textContent="🔊 "+tr("Voice")+(S.voice?" ✓":"");
+  if(S.voice)readScreen();else speechSynthesis.cancel();
+}
+const K_CHROME="Voice needs Chrome. Open this link in Chrome (not inside another app).",K_NOVOICE="This language's voice is not installed. Install it in phone Settings > Text-to-speech.",K_MIC="The mic is blocked in this viewer. Use your keyboard's mic button to speak, or open the downloaded file in Chrome.",K_NOSP="Could not hear you. Please tap the mic and speak again.",K_LIS="Listening… speak now";
+function matchSym(t){const n=x=>x.toLowerCase().replace(/\s+/g,""),tt=n(t);return SYM.filter(x=>tt.includes(n(x))||tt.includes(n(tr(x))))}
+function afterDictate(id){if(id==="cin"){if($("#cin")&&$("#cin").value.trim())sendChat();return}if(id!=="free")return;const f=matchSym($("#free").value).filter(x=>!S.sel.includes(x));if(f.length){f.forEach(x=>S.sel.push(x));const d=$("#dur").value,tx=$("#free").value,sv=$("#sev").value;render();$("#dur").value=d;$("#free").value=tx;$("#sev").value=sv}}
+function dictate(id,btn){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return toast(tr(K_CHROME));
+  const el=$("#"+id),base=(id==="ph"||!el.value)?"":el.value+" ";let bad=false;
+  const r=new SR();r.lang=LC[S.lang];r.interimResults=true;r.continuous=false;
+  btn.classList.add("rec");toast(tr(K_LIS));
+  r.onresult=e=>{let t="";for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;if(id==="ph")t=t.replace(/\D/g,"").slice(0,10);el.value=base+t};
+  r.onerror=e=>{bad=true;btn.classList.remove("rec");toast(tr(e.error==="not-allowed"||e.error==="service-not-allowed"?K_MIC:K_NOSP))};
+  r.onend=()=>{btn.classList.remove("rec");if(!bad)$("#toast").style.display="none";afterDictate(id)};
+  try{r.start()}catch(e){toast(tr(K_CHROME))}
+}
+function addMics(){["ph","nm","free","dur","cm"].forEach(id=>{const el=$("#"+id);if(el&&!(el.nextElementSibling&&el.nextElementSibling.classList.contains("mic")))el.insertAdjacentHTML("afterend",`<button type="button" class="mic" onclick="dictate('${id}',this)">🎤 ${tr(id==="free"?"Tell your symptoms by speaking":"Speak")}</button>`)})}
+if("speechSynthesis" in window)speechSynthesis.onvoiceschanged=()=>{};
+Object.assign(D,{
+"Serious Chest or Breathing Problem":"ಗಂಭೀರ ಎದೆ ಅಥವಾ ಉಸಿರಾಟದ ಸಮಸ್ಯೆ|गंभीर छाती या सांस की समस्या|తీవ్రమైన ఛాతీ లేదా శ్వాస సమస్య|கடுமையான நெஞ்சு அல்லது சுவாசப் பிரச்சினை",
+"Chest Infection (possible pneumonia)":"ಎದೆಯ ಸೋಂಕು (ನ್ಯುಮೋನಿಯಾ ಸಾಧ್ಯತೆ)|छाती का संक्रमण (निमोनिया की संभावना)|ఛాతీ ఇన్ఫెక్షన్ (న్యుమోనియా అవకాశం)|நெஞ்சுத் தொற்று (நிமோனியா சாத்தியம்)",
+"Fever with Rash":"ಜ್ವರದೊಂದಿಗೆ ದದ್ದು|बुखार के साथ दाने|జ్వరంతో దద్దుర్లు|காய்ச்சலுடன் தடிப்பு",
+"Fever with Severe Headache":"ಜ್ವರದೊಂದಿಗೆ ತೀವ್ರ ತಲೆನೋವು|बुखार के साथ तेज सिरदर्द|జ్వరంతో తీవ్రమైన తలనొప్పి|காய்ச்சலுடன் கடுமையான தலைவலி",
+"Tension Headache":"ಒತ್ತಡದ ತಲೆನೋವು|तनाव वाला सिरदर्द|ఒత్తిడి తలనొప్పి|மன அழுத்தத் தலைவலி",
+"Throat Infection":"ಗಂಟಲಿನ ಸೋಂಕು|गले का संक्रमण|గొంతు ఇన్ఫెక్షన్|தொண்டைத் தொற்று",
+"Acidity / Stomach Pain":"ಆಮ್ಲೀಯತೆ / ಹೊಟ್ಟೆ ನೋವು|एसिडिटी / पेट दर्द|ఎసిడిటీ / కడుపు నొప్పి|அசிடிட்டி / வயிற்று வலி",
+"Stomach Upset":"ಹೊಟ್ಟೆ ಕೆಡುವುದು|पेट खराब|కడుపు ఖరాబు|வயிற்றுக் கோளாறு",
+"Body Pain / Weakness":"ಮೈಕೈ ನೋವು / ದೌರ್ಬಲ್ಯ|बदन दर्द / कमजोरी|ఒళ్లు నొప్పులు / బలహీనత|உடல் வலி / பலவீனம்",
+"Skin Allergy":"ಚರ್ಮದ ಅಲರ್ಜಿ|त्वचा की एलर्जी|చర్మ అలెర్జీ|தோல் ஒவ்வாமை",
+"Your symptoms match this pattern:":"ನಿಮ್ಮ ಲಕ್ಷಣಗಳು ಈ ಸ್ಥಿತಿಗೆ ಹೊಂದುತ್ತವೆ:|आपके लक्षण इस स्थिति से मेल खाते हैं:|మీ లక్షణాలు ఈ పరిస్థితికి సరిపోతాయి:|உங்கள் அறிகுறிகள் இந்த நிலையை ஒத்துள்ளன:",
+"This may be serious. Get medical help right now.":"ಇದು ಗಂಭೀರವಾಗಿರಬಹುದು. ಈಗಲೇ ವೈದ್ಯಕೀಯ ಸಹಾಯ ಪಡೆಯಿರಿ.|यह गंभीर हो सकता है। अभी चिकित्सा सहायता लें।|ఇది తీవ్రం కావచ్చు. వెంటనే వైద్య సహాయం పొందండి.|இது கடுமையாக இருக்கலாம். உடனே மருத்துவ உதவி பெறுங்கள்.",
+"Please consult a doctor today.":"ದಯವಿಟ್ಟು ಇಂದೇ ವೈದ್ಯರನ್ನು ಭೇಟಿಯಾಗಿ.|कृपया आज ही डॉक्टर से मिलें।|దయచేసి ఈరోజే వైద్యుడిని కలవండి.|தயவுசெய்து இன்றே மருத்துவரைப் பாருங்கள்.",
+"Usually mild. Home care is enough; see a doctor if it does not improve.":"ಸಾಮಾನ್ಯವಾಗಿ ಸೌಮ್ಯ. ಮನೆಮದ್ದು ಸಾಕು; ಸುಧಾರಿಸದಿದ್ದರೆ ವೈದ್ಯರನ್ನು ಭೇಟಿಯಾಗಿ.|आमतौर पर हल्का। घरेलू देखभाल काफी है; ठीक न हो तो डॉक्टर से मिलें।|సాధారణంగా స్వల్పం. ఇంటి సంరక్షణ చాలు; మెరుగుపడకపోతే వైద్యుడిని కలవండి.|பொதுவாக லேசானது. வீட்டு பராமரிப்பு போதும்; குணமாகாவிட்டால் மருத்துவரைப் பாருங்கள்.",
+"Because severity is Severe, the risk level was raised.":"ತೀವ್ರತೆ ‘ತೀವ್ರ’ ಆಗಿರುವುದರಿಂದ ಅಪಾಯದ ಮಟ್ಟ ಹೆಚ್ಚಿಸಲಾಗಿದೆ.|गंभीरता ‘गंभीर’ होने से जोखिम स्तर बढ़ाया गया है।|తీవ్రత ‘తీవ్రం’ కావడంతో ప్రమాద స్థాయి పెంచబడింది.|தீவிரம் ‘கடுமை’ என்பதால் ஆபத்து நிலை உயர்த்தப்பட்டது.",
+"What to do now":"ಈಗ ಮಾಡಬೇಕಾದದ್ದು|अभी क्या करें|ఇప్పుడు ఏమి చేయాలి|இப்போது செய்ய வேண்டியது",
+"What to take (OTC, adults)":"ಏನು ತೆಗೆದುಕೊಳ್ಳಬೇಕು (ಅಂಗಡಿಯಲ್ಲಿ ಸಿಗುವ, ವಯಸ್ಕರಿಗೆ)|क्या लें (बिना पर्चे की, वयस्कों के लिए)|ఏమి తీసుకోవాలి (షాపులో దొరికేవి, పెద్దలకు)|என்ன எடுக்க வேண்டும் (கடையில் கிடைக்கும், பெரியவர்களுக்கு)",
+"Care at home":"ಮನೆಯಲ್ಲಿ ಆರೈಕೆ|घर पर देखभाल|ఇంట్లో సంరక్షణ|வீட்டில் பராமரிப்பு",
+"Get urgent help if":"ಈ ಲಕ್ಷಣ ಕಂಡರೆ ತಕ್ಷಣ ಸಹಾಯ ಪಡೆಯಿರಿ|ये हो तो तुरंत मदद लें|ఇవి ఉంటే వెంటనే సహాయం పొందండి|இவை இருந்தால் உடனே உதவி பெறுங்கள்",
+"No medicines are suggested for this condition. Follow the steps above and see a doctor first.":"ಈ ಸ್ಥಿತಿಗೆ ಯಾವುದೇ ಔಷಧಿ ಸೂಚಿಸಿಲ್ಲ. ಮೇಲಿನ ಹಂತಗಳನ್ನು ಪಾಲಿಸಿ ಮತ್ತು ಮೊದಲು ವೈದ್ಯರನ್ನು ಭೇಟಿಯಾಗಿ.|इस स्थिति के लिए कोई दवा नहीं सुझाई गई। ऊपर के कदम अपनाएं और पहले डॉक्टर से मिलें।|ఈ పరిస్థితికి మందులు సూచించలేదు. పై దశలు పాటించి ముందు వైద్యుడిని కలవండి.|இந்த நிலைக்கு மருந்து எதுவும் பரிந்துரைக்கப்படவில்லை. மேலே உள்ளவற்றைப் பின்பற்றி முதலில் மருத்துவரைப் பாருங்கள்.",
+"Over-the-counter medicines for adults. Children, pregnant women and people with other illnesses must ask a doctor first.":"ಅಂಗಡಿಯಲ್ಲಿ ಸಿಗುವ ವಯಸ್ಕರ ಔಷಧಿಗಳು. ಮಕ್ಕಳು, ಗರ್ಭಿಣಿಯರು ಮತ್ತು ಬೇರೆ ಕಾಯಿಲೆ ಇರುವವರು ಮೊದಲು ವೈದ್ಯರನ್ನು ಕೇಳಬೇಕು.|बिना पर्चे की वयस्कों की दवाएं। बच्चे, गर्भवती महिलाएं और अन्य बीमारी वाले पहले डॉक्टर से पूछें।|షాపులో దొరికే పెద్దల మందులు. పిల్లలు, గర్భిణులు, ఇతర వ్యాధులున్నవారు ముందు వైద్యుడిని అడగాలి.|கடையில் கிடைக்கும் பெரியவர்களுக்கான மருந்துகள். குழந்தைகள், கர்ப்பிணிகள், வேறு நோய் உள்ளவர்கள் முதலில் மருத்துவரிடம் கேட்க வேண்டும்.",
+[C1]:"ಚೆನ್ನಾಗಿ ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ, ಸಾಕಷ್ಟು ನೀರು ಕುಡಿಯಿರಿ.|अच्छी तरह आराम करें और खूब तरल पिएं।|బాగా విశ్రాంతి తీసుకోండి, ఎక్కువ ద్రవాలు తాగండి.|நன்றாக ஓய்வெடுங்கள், நிறைய திரவங்கள் குடியுங்கள்.",
+[C2]:"ಹಗುರವಾದ ಮನೆ ಊಟ ಮಾಡಿ.|हल्का घर का खाना खाएं।|తేలికైన ఇంటి భోజనం తినండి.|இலகுவான வீட்டு உணவை உண்ணுங்கள்.",
+[C3]:"ಪ್ರತಿ ಭೇದಿ ಅಥವಾ ವಾಂತಿಯ ನಂತರ ಒಆರ್‌ಎಸ್ ನಿಧಾನವಾಗಿ ಕುಡಿಯಿರಿ.|हर दस्त या उल्टी के बाद ओआरएस धीरे-धीरे पिएं।|ప్రతి విరేచనం లేదా వాంతి తర్వాత ఓఆర్‌ఎస్ నెమ్మదిగా తాగండి.|ஒவ்வொரு வயிற்றுப்போக்கு அல்லது வாந்திக்குப் பின் ORS மெதுவாகக் குடியுங்கள்.",
+[C4]:"ಜ್ವರಕ್ಕೆ ಐಬುಪ್ರೊಫೆನ್ ಅಥವಾ ಆಸ್ಪಿರಿನ್ ತೆಗೆದುಕೊಳ್ಳಬೇಡಿ.|बुखार में इबुप्रोफेन या एस्पिरिन न लें।|జ్వరానికి ఇబుప్రొఫెన్ లేదా ఆస్పిరిన్ తీసుకోవద్దు.|காய்ச்சலுக்கு இபுப்ரோஃபென் அல்லது ஆஸ்பிரின் எடுக்காதீர்கள்.",
+[C5]:"ಬೆಚ್ಚಗಿನ ಉಪ್ಪು ನೀರಿನಲ್ಲಿ ಗಾರ್ಗಲ್ ಮಾಡಿ, ಹಬೆ ತೆಗೆದುಕೊಳ್ಳಿ.|गुनगुने नमक के पानी से गरारे करें और भाप लें।|గోరువెచ్చని ఉప్పు నీటితో పుక్కిలించండి, ఆవిరి పట్టండి.|வெதுவெதுப்பான உப்பு நீரில் கொப்பளித்து ஆவி பிடியுங்கள்.",
+[C6]:"ಕತ್ತಲೆಯ ಶಾಂತ ಕೋಣೆಯಲ್ಲಿ ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ.|अंधेरे, शांत कमरे में आराम करें।|చీకటి, ప్రశాంత గదిలో విశ్రాంతి తీసుకోండి.|இருட்டான, அமைதியான அறையில் ஓய்வெடுங்கள்.",
+[C7]:"ನೋವಿರುವ ಜಾಗಕ್ಕೆ ಬೆಚ್ಚಗಿನ ಶಾಖ ಕೊಡಿ.|दर्द वाली जगह पर गर्म सेंक करें।|నొప్పి ఉన్న చోట వెచ్చని కాపడం పెట్టండి.|வலி உள்ள இடத்தில் சூடான ஒத்தடம் கொடுங்கள்.",
+[C8]:"ಕೆರೆಯಬೇಡಿ; ಚರ್ಮವನ್ನು ಸ್ವಚ್ಛ ಮತ್ತು ಒಣಗಿಸಿ ಇಡಿ.|खुजलाएं नहीं; त्वचा साफ और सूखी रखें।|గోకవద్దు; చర్మాన్ని శుభ్రంగా, పొడిగా ఉంచండి.|சொறியாதீர்கள்; தோலைச் சுத்தமாகவும் உலர்வாகவும் வைத்திருங்கள்.",
+[C9]:"ಖಾರ, ಎಣ್ಣೆ ಪದಾರ್ಥ ತಪ್ಪಿಸಿ; ಊಟವಾದ ತಕ್ಷಣ ಮಲಗಬೇಡಿ.|मसालेदार, तैलीय खाना न खाएं; खाने के तुरंत बाद न लेटें।|కారం, నూనె పదార్థాలు మానండి; తిన్న వెంటనే పడుకోవద్దు.|காரம், எண்ணெய் உணவைத் தவிர்க்கவும்; சாப்பிட்டவுடன் படுக்காதீர்கள்.",
+[W1]:"ಜ್ವರ 3 ದಿನಕ್ಕಿಂತ ಹೆಚ್ಚು ಇದ್ದರೆ ಆಸ್ಪತ್ರೆಗೆ ಹೋಗಿ.|बुखार 3 दिन से ज्यादा रहे तो अस्पताल जाएं।|జ్వరం 3 రోజులకు మించి ఉంటే ఆసుపత్రికి వెళ్లండి.|காய்ச்சல் 3 நாட்களுக்கு மேல் நீடித்தால் மருத்துவமனைக்குச் செல்லுங்கள்.",
+[W2]:"ನೀರು ಕುಡಿಯಲು ಆಗದಿದ್ದರೆ, ಮೂತ್ರ ತುಂಬಾ ಕಡಿಮೆ ಆದರೆ, ಅಥವಾ ತುಂಬಾ ಸುಸ್ತು/ತಲೆತಿರುಗಿದರೆ ಆಸ್ಪತ್ರೆಗೆ ಹೋಗಿ.|तरल न पी पाएं, पेशाब बहुत कम हो, या बहुत कमजोरी/चक्कर हो तो अस्पताल जाएं।|ద్రవాలు తాగలేకపోతే, మూత్రం చాలా తక్కువగా వస్తే, లేదా చాలా నీరసం/తల తిరుగుతుంటే ఆసుపత్రికి వెళ్లండి.|திரவம் குடிக்க முடியாவிட்டால், சிறுநீர் மிகக் குறைவாக இருந்தால், அல்லது மிகவும் சோர்வு/தலைச்சுற்றல் இருந்தால் மருத்துவமனைக்குச் செல்லுங்கள்.",
+[W3]:"ಮಲ ಅಥವಾ ವಾಂತಿಯಲ್ಲಿ ರಕ್ತ, ಕಪ್ಪು ಮಲ, ಅಥವಾ ತೀವ್ರ ಹೊಟ್ಟೆ ನೋವು ಇದ್ದರೆ ಆಸ್ಪತ್ರೆಗೆ ಹೋಗಿ.|मल या उल्टी में खून, काला मल, या तेज पेट दर्द हो तो अस्पताल जाएं।|మలం లేదా వాంతిలో రక్తం, నల్లని మలం, లేదా తీవ్రమైన కడుపు నొప్పి ఉంటే ఆసుపత్రికి వెళ్లండి.|மலம் அல்லது வாந்தியில் இரத்தம், கருப்பு மலம், அல்லது கடுமையான வயிற்று வலி இருந்தால் மருத்துவமனைக்குச் செல்லுங்கள்.",
+[W5]:"ಹಠಾತ್ ತೀವ್ರ ತಲೆನೋವು, ದೌರ್ಬಲ್ಯ, ದೃಷ್ಟಿ ನಷ್ಟ, ಗೊಂದಲ ಅಥವಾ ಕುತ್ತಿಗೆ ಬಿಗಿತ ಇದ್ದರೆ ಆಸ್ಪತ್ರೆಗೆ ಹೋಗಿ.|अचानक तेज सिरदर्द, कमजोरी, नजर जाना, भ्रम या गर्दन अकड़ना हो तो अस्पताल जाएं।|అకస్మాత్తుగా తీవ్ర తలనొప్పి, బలహీనత, చూపు పోవడం, గందరగోళం లేదా మెడ బిగుసుకుంటే ఆసుపత్రికి వెళ్లండి.|திடீர் கடுமையான தலைவலி, பலவீனம், பார்வை இழப்பு, குழப்பம் அல்லது கழுத்து இறுக்கம் இருந்தால் மருத்துவமனைக்குச் செல்லுங்கள்.",
+[W6]:"ಮುಖ, ತುಟಿ ಅಥವಾ ಗಂಟಲು ಊದಿಕೊಂಡರೆ ಅಥವಾ ಉಸಿರಾಟ ಕಷ್ಟವಾದರೆ ಆಸ್ಪತ್ರೆಗೆ ಹೋಗಿ.|चेहरा, होंठ या गला सूजे, या सांस फूले तो अस्पताल जाएं।|ముఖం, పెదవులు లేదా గొంతు వాచినా, లేదా ఊపిరి ఆడకపోయినా ఆసుపత్రికి వెళ్లండి.|முகம், உதடு அல்லது தொண்டை வீங்கினால், அல்லது மூச்சுத் திணறினால் மருத்துவமனைக்குச் செல்லுங்கள்.",
+[W7]:"3 ದಿನದಲ್ಲಿ ಸುಧಾರಿಸದಿದ್ದರೆ ವೈದ್ಯರನ್ನು ಭೇಟಿಯಾಗಿ.|3 दिन में ठीक न हो तो डॉक्टर से मिलें।|3 రోజుల్లో మెరుగుపడకపోతే వైద్యుడిని కలవండి.|3 நாட்களில் குணமாகாவிட்டால் மருத்துவரைப் பாருங்கள்.",
+[EM[0]]:"ಈಗಲೇ 108 (ಆಂಬ್ಯುಲೆನ್ಸ್) ಅಥವಾ 112 ಗೆ ಕರೆ ಮಾಡಿ.|अभी 108 (एम्बुलेंस) या 112 पर कॉल करें।|వెంటనే 108 (అంబులెన్స్) లేదా 112 కు కాల్ చేయండి.|இப்போதே 108 (ஆம்புலன்ஸ்) அல்லது 112 ஐ அழையுங்கள்.",
+[EM[1]]:"ನೇರವಾಗಿ ಕುಳಿತು ಶಾಂತವಾಗಿರಿ, ಶ್ರಮ ಪಡಬೇಡಿ.|सीधे बैठें, शांत रहें और मेहनत न करें।|నిటారుగా కూర్చోండి, ప్రశాంతంగా ఉండండి, శ్రమ పడవద్దు.|நேராக உட்காருங்கள், அமைதியாக இருங்கள், உடலை வருத்தாதீர்கள்.",
+[EM[2]]:"ನೀವೇ ವಾಹನ ಓಡಿಸಬೇಡಿ; ಯಾರಾದರೂ ಹತ್ತಿರದ ಆಸ್ಪತ್ರೆಗೆ ಕರೆದುಕೊಂಡು ಹೋಗಲಿ.|खुद गाड़ी न चलाएं; किसी से नजदीकी अस्पताल ले जाने को कहें।|మీరే వాహనం నడపవద్దు; ఎవరినైనా సమీప ఆసుపత్రికి తీసుకెళ్లమనండి.|நீங்களே வாகனம் ஓட்டாதீர்கள்; யாராவது அருகிலுள்ள மருத்துவமனைக்கு அழைத்துச் செல்லட்டும்.",
+[EM[3]]:"ವೈದ್ಯರು ಹೇಳದ ಹೊರತು ನೀವೇ ಯಾವುದೇ ಔಷಧಿ ತೆಗೆದುಕೊಳ್ಳಬೇಡಿ.|डॉक्टर के कहे बिना खुद कोई दवा न लें।|వైద్యుడు చెప్పకుండా మీరే ఏ మందూ వాడవద్దు.|மருத்துவர் சொல்லாமல் நீங்களே எந்த மருந்தும் எடுக்காதீர்கள்.",
+[PA.n]:"ಪ್ಯಾರಸಿಟಮಾಲ್ 650 ಮಿ.ಗ್ರಾಂ|पैरासिटामोल 650 मि.ग्रा.|పారాసిటమాల్ 650 మి.గ్రా|பாராசிட்டமால் 650 மி.கி",
+[PA.dos]:"ಜ್ವರ ಅಥವಾ ನೋವಿದ್ದರೆ 6 ಗಂಟೆಗೊಮ್ಮೆ 1 ಮಾತ್ರೆ (ದಿನಕ್ಕೆ ಗರಿಷ್ಠ 4)|बुखार या दर्द हो तो हर 6 घंटे में 1 गोली (दिन में अधिकतम 4)|జ్వరం లేదా నొప్పి ఉంటే ప్రతి 6 గంటలకు 1 మాత్ర (రోజుకు గరిష్ఠంగా 4)|காய்ச்சல் அல்லது வலி இருந்தால் 6 மணி நேரத்துக்கு ஒரு மாத்திரை (நாளுக்கு அதிகபட்சம் 4)",
+[ORS.dos]:"1 ಲೀಟರ್ ಶುದ್ಧ ನೀರಿಗೆ 1 ಪ್ಯಾಕೆಟ್; ಪ್ರತಿ ಭೇದಿಯ ನಂತರ ಕುಡಿಯಿರಿ|1 लीटर साफ पानी में 1 पैकेट; हर दस्त के बाद पिएं|1 లీటరు శుభ్రమైన నీటిలో 1 ప్యాకెట్; ప్రతి విరేచనం తర్వాత తాగండి|1 லிட்டர் சுத்தமான தண்ணீரில் 1 பாக்கெட்; ஒவ்வொரு வயிற்றுப்போக்குக்குப் பின் குடியுங்கள்",
+[CET.n]:"ಸೆಟಿರಿಜಿನ್ 10 ಮಿ.ಗ್ರಾಂ|सेटिरिज़िन 10 मि.ग्रा.|సెటిరిజిన్ 10 మి.గ్రా|செடிரிசின் 10 மி.கி",
+[CET.dos]:"ರಾತ್ರಿ 1 ಮಾತ್ರೆ|रात को 1 गोली|రాత్రి 1 మాత్ర|இரவு 1 மாத்திரை",
+[CAL.n]:"ಕ್ಯಾಲಮೈನ್ ಲೋಷನ್|कैलामाइन लोशन|కాలమైన్ లోషన్|கலாமைன் லோஷன்",
+[CAL.dos]:"ದದ್ದಿನ ಮೇಲೆ ದಿನಕ್ಕೆ 2–3 ಬಾರಿ ಹಚ್ಚಿ|दानों पर दिन में 2–3 बार लगाएं|దద్దుర్లపై రోజుకు 2–3 సార్లు రాయండి|தடிப்பின் மீது தினமும் 2–3 முறை தடவுங்கள்",
+[ANT.n]:"ಆಂಟಾಸಿಡ್ ಸಿರಪ್|एंटासिड सिरप|యాంటాసిడ్ సిరప్|ஆன்டாசிட் சிரப்",
+[ANT.dos]:"ಊಟದ ನಂತರ 10 ಮಿಲಿ, ದಿನಕ್ಕೆ ಗರಿಷ್ಠ 3 ಬಾರಿ|खाने के बाद 10 मिली, दिन में अधिकतम 3 बार|భోజనం తర్వాత 10 మి.లీ, రోజుకు గరిష్ఠంగా 3 సార్లు|சாப்பிட்ட பின் 10 மி.லி, தினமும் அதிகபட்சம் 3 முறை",
+[LOZ.n]:"ಗಂಟಲಿನ ಮಾತ್ರೆ (ಲೋಜೆಂಜ್)|गले की गोलियां (लोज़ेंज)|గొంతు బిళ్లలు (లోజెంజెస్)|தொண்டை மாத்திரை (லோசெஞ்ச்)",
+[LOZ.dos]:"3–4 ಗಂಟೆಗೊಮ್ಮೆ 1 ಮಾತ್ರೆ ಚೀಪಿ (ದಿನಕ್ಕೆ ಗರಿಷ್ಠ 6)|हर 3–4 घंटे में 1 गोली चूसें (दिन में अधिकतम 6)|ప్రతి 3–4 గంటలకు 1 బిళ్ల చప్పరించండి (రోజుకు గరిష్ఠంగా 6)|3–4 மணி நேரத்துக்கு ஒரு மாத்திரை சப்புங்கள் (நாளுக்கு அதிகபட்சம் 6)",
+[GEL.n]:"ಡೈಕ್ಲೋಫೆನಾಕ್ ಜೆಲ್|डाइक्लोफेनाक जेल|డైక్లోఫెనాక్ జెల్|டைக்ளோஃபெனாக் ஜெல்",
+[GEL.dos]:"ನೋವಿರುವ ಜಾಗದಲ್ಲಿ ತೆಳುವಾಗಿ ಹಚ್ಚಿ, ದಿನಕ್ಕೆ ಗರಿಷ್ಠ 3 ಬಾರಿ|दर्द वाली जगह पर पतली परत लगाएं, दिन में अधिकतम 3 बार|నొప్పి ఉన్న చోట పలుచగా రాయండి, రోజుకు గరిష్ఠంగా 3 సార్లు|வலி உள்ள இடத்தில் மெல்லிய அடுக்காகத் தடவுங்கள், தினமும் அதிகபட்சம் 3 முறை",
+"Dr. Ananya Rao":"ಡಾ. ಅನನ್ಯಾ ರಾವ್|डॉ. अनन्या राव|డా. అనన్య రావు|டாக்டர் அனன்யா ராவ்",
+"Dr. Vikram Shetty":"ಡಾ. ವಿಕ್ರಮ್ ಶೆಟ್ಟಿ|डॉ. विक्रम शेट्टी|డా. విక్రమ్ శెట్టి|டாக்டர் விக்ரம் ஷெட்டி",
+"Dr. Priya Nair":"ಡಾ. ಪ್ರಿಯಾ ನಾಯರ್|डॉ. प्रिया नायर|డా. ప్రియా నాయర్|டாக்டர் பிரியா நாயர்",
+"Dr. Fathima Sheikh":"ಡಾ. ಫಾತಿಮಾ ಶೇಖ್|डॉ. फातिमा शेख|డా. ఫాతిమా షేక్|டாக்டர் பாத்திமா ஷேக்",
+"Dr. Rohan Gowda":"ಡಾ. ರೋಹನ್ ಗೌಡ|डॉ. रोहन गौड़ा|డా. రోహన్ గౌడ|டாக்டர் ரோஹன் கவுடா",
+"Sri Ganesh Medicals":"ಶ್ರೀ ಗಣೇಶ್ ಮೆಡಿಕಲ್ಸ್|श्री गणेश मेडिकल्स|శ్రీ గణేష్ మెడికల్స్|ஸ்ரீ கணேஷ் மெடிக்கல்ஸ்",
+"Apollo Pharmacy":"ಅಪೋಲೊ ಫಾರ್ಮಸಿ|अपोलो फार्मेसी|అపోలో ఫార్మసీ|அப்போலோ பார்மசி",
+"Village Health Store":"ವಿಲೇಜ್ ಹೆಲ್ತ್ ಸ್ಟೋರ್|विलेज हेल्थ स्टोर|విలేజ్ హెల్త్ స్టోర్|வில்லேஜ் ஹெல்த் ஸ்டோர்",
+"Manjunath R.":"ಮಂಜುನಾಥ್ ಆರ್.|मंजुनाथ आर.|మంజునాథ్ ఆర్.|மஞ்சுநாத் ஆர்.",
+"Suresh K.":"ಸುರೇಶ್ ಕೆ.|सुरेश के.|సురేష్ కె.|சுரேஷ் கே.",
+"Ravi P.":"ರವಿ ಪಿ.|रवि पी.|రవి పి.|ரவி பி.",
+"Bike":"ಬೈಕ್|बाइक|బైక్|பைக்","km":"ಕಿ.ಮೀ|कि.मी.|కి.మీ|கி.மீ.","Friend":"ಸ್ನೇಹಿತ|दोस्त|మిత్రుడు|நண்பர்","Voice":"ಧ್ವನಿ|आवाज़|వాయిస్|குரல்","Speak":"ಮಾತನಾಡಿ|बोलें|మాట్లాడండి|பேசுங்கள்",
+"Tell your symptoms by speaking":"ಮಾತನಾಡಿ ನಿಮ್ಮ ಲಕ್ಷಣ ಹೇಳಿ|बोलकर अपने लक्षण बताएं|మాట్లాడి మీ లక్షణాలు చెప్పండి|பேசி உங்கள் அறிகுறிகளைச் சொல்லுங்கள்",
+[K_LIS]:"ಕೇಳುತ್ತಿದೆ… ಈಗ ಮಾತನಾಡಿ|सुन रहा हूं… अब बोलें|వింటోంది… ఇప్పుడు మాట్లాడండి|கேட்கிறது… இப்போது பேசுங்கள்",
+[K_CHROME]:"ಧ್ವನಿಗೆ Chrome ಬೇಕು. ಈ ಲಿಂಕ್ ಅನ್ನು Chrome ನಲ್ಲಿ ತೆರೆಯಿರಿ (ಬೇರೆ ಆ್ಯಪ್ ಒಳಗೆ ಅಲ್ಲ).|आवाज़ के लिए Chrome चाहिए। इस लिंक को Chrome में खोलें (किसी दूसरे ऐप के अंदर नहीं)।|వాయిస్ కోసం Chrome కావాలి. ఈ లింక్‌ను Chrome లో తెరవండి (వేరే యాప్ లోపల కాదు).|குரலுக்கு Chrome தேவை. இந்த இணைப்பை Chrome இல் திறக்கவும் (வேறு ஆப்புக்குள் அல்ல).",
+[K_NOVOICE]:"ಈ ಭಾಷೆಯ ಧ್ವನಿ ಇನ್‌ಸ್ಟಾಲ್ ಆಗಿಲ್ಲ. ಫೋನ್ ಸೆಟ್ಟಿಂಗ್ಸ್ > Text-to-speech ನಲ್ಲಿ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿ.|इस भाषा की आवाज़ इंस्टॉल नहीं है। फोन सेटिंग्स > Text-to-speech में इंस्टॉल करें।|ఈ భాష వాయిస్ ఇన్‌స్టాల్ కాలేదు. ఫోన్ సెట్టింగ్స్ > Text-to-speech లో ఇన్‌స్టాల్ చేయండి.|இந்த மொழியின் குரல் நிறுவப்படவில்லை. போன் செட்டிங்ஸ் > Text-to-speech இல் நிறுவுங்கள்.",
+[K_MIC]:"ಈ ವೀಕ್ಷಕದಲ್ಲಿ ಮೈಕ್ ನಿರ್ಬಂಧಿತವಾಗಿದೆ. ಕೀಬೋರ್ಡ್‌ನ ಮೈಕ್ ಬಟನ್ ಬಳಸಿ ಮಾತನಾಡಿ, ಅಥವಾ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಫೈಲ್ ಅನ್ನು Chrome ನಲ್ಲಿ ತೆರೆಯಿರಿ.|इस व्यूअर में माइक बंद है। कीबोर्ड के माइक बटन से बोलें, या डाउनलोड की गई फ़ाइल को Chrome में खोलें।|ఈ వ్యూయర్‌లో మైక్ బ్లాక్ అయింది. కీబోర్డ్‌లోని మైక్ బటన్‌తో మాట్లాడండి, లేదా డౌన్‌లోడ్ చేసిన ఫైల్‌ను Chrome లో తెరవండి.|இந்த வியூவரில் மைக் தடுக்கப்பட்டுள்ளது. கீபோர்டின் மைக் பட்டனில் பேசுங்கள், அல்லது பதிவிறக்கிய கோப்பை Chrome இல் திறக்கவும்.",
+[K_NOSP]:"ನಿಮ್ಮ ಧ್ವನಿ ಕೇಳಿಸಲಿಲ್ಲ. ಮೈಕ್ ಒತ್ತಿ ಮತ್ತೆ ಮಾತನಾಡಿ.|आपकी आवाज़ सुनाई नहीं दी। माइक दबाकर फिर बोलें।|మీ గొంతు వినిపించలేదు. మైక్ నొక్కి మళ్లీ మాట్లాడండి.|உங்கள் குரல் கேட்கவில்லை. மைக்கை அழுத்தி மீண்டும் பேசுங்கள்."
+});
+Object.assign(D,{
+"Calling":"ಕರೆ ಮಾಡಲಾಗುತ್ತಿದೆ|कॉल हो रही है|కాల్ చేస్తోంది|அழைக்கிறது",
+"Ringing…":"ರಿಂಗ್ ಆಗುತ್ತಿದೆ…|रिंग हो रही है…|రింగ్ అవుతోంది…|ஒலிக்கிறது…",
+"Connected":"ಸಂಪರ್ಕವಾಗಿದೆ|कनेक्ट हो गया|కనెక్ట్ అయింది|இணைக்கப்பட்டது",
+"End call":"ಕರೆ ಕೊನೆಗೊಳಿಸಿ|कॉल समाप्त करें|కాల్ ముగించండి|அழைப்பை முடிக்கவும்",
+"Mute":"ಮ್ಯೂಟ್|म्यूट|మ్యూట్|ஒலி நிறுத்து",
+"Camera":"ಕ್ಯಾಮೆರಾ|कैमरा|కెమెరా|கேமரா",
+"You":"ನೀವು|आप|మీరు|நீங்கள்",
+"UPI":"ಯುಪಿಐ|यूपीआई|యూపీఐ|UPI",
+"UPI (Scan QR)":"ಯುಪಿಐ (QR ಸ್ಕ್ಯಾನ್)|यूपीआई (QR स्कैन)|యూపీఐ (QR స్కాన్)|UPI (QR ஸ்கேன்)",
+"Scan this QR with any UPI app":"ಯಾವುದೇ ಯುಪಿಐ ಆ್ಯಪ್‌ನಿಂದ ಈ QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ|किसी भी यूपीआई ऐप से यह QR स्कैन करें|ఏదైనా యూపీఐ యాప్‌తో ఈ QR స్కాన్ చేయండి|எந்த UPI ஆப்பிலும் இந்த QR ஐ ஸ்கேன் செய்யுங்கள்",
+"Demo QR – no real money is charged":"ಡೆಮೊ QR – ನಿಜವಾದ ಹಣ ಕಡಿತವಾಗುವುದಿಲ್ಲ|डेमो QR – असली पैसा नहीं कटेगा|డెమో QR – నిజమైన డబ్బు కట్ కాదు|டெமோ QR – உண்மையான பணம் எடுக்கப்படாது",
+"Waiting for payment…":"ಪಾವತಿಗಾಗಿ ಕಾಯಲಾಗುತ್ತಿದೆ…|भुगतान का इंतजार…|చెల్లింపు కోసం వేచి ఉన్నాం…|கட்டணத்திற்காகக் காத்திருக்கிறது…",
+"I have paid":"ನಾನು ಪಾವತಿಸಿದ್ದೇನೆ|मैंने भुगतान कर दिया|నేను చెల్లించాను|நான் செலுத்திவிட்டேன்"
+});
+
+/* ---- UPI QR payment ---- */
+function qrSvg(seed){
+  const n=25;let x=seed*7919+13,d="";
+  const r=()=>(x=(x*1103515245+12345)&0x7fffffff)/0x7fffffff;
+  const fp=(a,b)=>a===0||a===6||b===0||b===6||(a>=2&&a<=4&&b>=2&&b<=4);
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+    let on;
+    if(i<7&&j<7)on=fp(i,j);else if(i<7&&j>=n-7)on=fp(i,j-(n-7));else if(i>=n-7&&j<7)on=fp(i-(n-7),j);else on=r()>.5;
+    if(on)d+="M"+j+" "+i+"h1v1h-1z";
+  }
+  return `<svg viewBox="-1 -1 27 27" width="180" height="180" role="img" aria-label="UPI QR" shape-rendering="crispEdges" style="background:#fff;border-radius:10px"><path d="${d}" fill="#000"/></svg>`;
+}
+function payFlow(amt,next){
+  const ps=$("#ps");
+  const ok=()=>{ps.textContent=tr("Payment successful!")+" ₹"+amt+" "+(S.lang==="en"?"via "+S.pay:tr(S.pay)+" "+tr("via"));setTimeout(next,800)};
+  if(S.pay!=="UPI"){ps.textContent=tr("Processing payment...");setTimeout(ok,1200);return}
+  ps.innerHTML=`<span style="display:block;text-align:center">${qrSvg(amt)}<br><b class="tot">₹${amt}</b><br>${tr("Scan this QR with any UPI app")}<br><span class="hint">${tr("Demo QR – no real money is charged")}</span><br>${tr("Waiting for payment…")}<br><button class="go" id="paid" type="button">${tr("I have paid")}</button></span>`;
+  let done=false,tt=null;
+  const fin=()=>{if(done)return;done=true;clearTimeout(tt);ps.textContent=tr("Processing payment...");setTimeout(ok,900)};
+  tt=setTimeout(fin,9000);$("#paid").onclick=fin;
+}
+
+/* ---- Audio / video call ---- */
+function ringOn(){try{const A=window.AudioContext||window.webkitAudioContext;S.ac=S.ac||new A();const beep=()=>{const o=S.ac.createOscillator(),g=S.ac.createGain();o.frequency.value=440;g.gain.value=.08;o.connect(g);g.connect(S.ac.destination);o.start();o.stop(S.ac.currentTime+.35)};beep();S.ri=setInterval(beep,1500)}catch(e){}}
+function ringOff(){clearInterval(S.ri)}
+function vCall(){return `<h2>${tr(S.mode)}</h2><div class="card call" id="cbx"></div>`}
+function runCall(){
+  const vd=S.mode==="Video call",box=$("#cbx"),ini=tr(S.doc.n).split(" ").slice(1).map(w=>w[0]).join("");
+  let ci=null,stream=null;
+  box.innerHTML=`<div class="av ring">${ini}</div><p class="tot">${esc(tr(S.doc.n))}</p><p id="cs" role="status">${tr("Calling")}…</p>`;
+  ringOn();
+  setTimeout(()=>{const c=$("#cs");if(c)c.textContent=tr("Ringing…")},1200);
+  setTimeout(connect,4500);
+  function connect(){
+    if(S.step!==98)return;
+    ringOff();
+    box.innerHTML=`<div class="vid">${vd?`<div class="av">${ini}</div><div class="self" id="self">${tr("You")}</div>`:`<div><div class="av ring">${ini}</div><div class="wave"><i></i><i></i><i></i><i></i><i></i></div></div>`}</div>
+<p class="tot">${esc(tr(S.doc.n))}</p><p role="status">${tr("Connected")} • <span id="tm">00:00</span></p>
+<div class="row" style="justify-content:center"><button class="chip" id="mu" aria-pressed="false">🎙 ${tr("Mute")}</button>${vd?`<button class="chip" id="cmr" aria-pressed="false">📷 ${tr("Camera")}</button>`:""}<button class="go" id="end" style="background:var(--bad);margin:0">📞 ${tr("End call")}</button></div>`;
+    let sec=0;ci=setInterval(()=>{sec++;const m=$("#tm");if(m)m.textContent=String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0")},1000);
+    const tgl=e=>{const b=e.currentTarget;b.classList.toggle("on");b.setAttribute("aria-pressed",b.classList.contains("on"));return b.classList.contains("on")};
+    $("#mu").onclick=tgl;
+    if(vd){
+      navigator.mediaDevices&&navigator.mediaDevices.getUserMedia({video:true}).then(m=>{stream=m;const sf=$("#self");if(!sf){m.getTracks().forEach(t=>t.stop());return}sf.innerHTML="<video autoplay muted playsinline></video>";sf.firstChild.srcObject=m}).catch(()=>{});
+      $("#cmr").onclick=e=>{const off=tgl(e);stream&&stream.getVideoTracks().forEach(t=>t.enabled=!off)};
+    }
+    $("#end").onclick=()=>{clearInterval(ci);stream&&stream.getTracks().forEach(t=>t.stop());go(5)};
+  }
+}
+/* ---- Chat consultation ---- */
+const CHAT_Q=["Hello! I have seen your symptoms. How are you feeling now?","How long have you had this problem? Have you taken any medicine?","Any other symptoms, like fever, vomiting or breathlessness?","Thank you. I am reviewing your details. Tap End chat to see my advice."];
+Object.assign(D,{
+[CHAT_Q[0]]:"ನಮಸ್ಕಾರ! ನಿಮ್ಮ ಲಕ್ಷಣಗಳನ್ನು ನೋಡಿದ್ದೇನೆ. ಈಗ ನಿಮಗೆ ಹೇಗನಿಸುತ್ತಿದೆ?|नमस्ते! मैंने आपके लक्षण देखे हैं। अब आप कैसा महसूस कर रहे हैं?|నమస్కారం! మీ లక్షణాలు చూశాను. ఇప్పుడు మీకు ఎలా ఉంది?|வணக்கம்! உங்கள் அறிகுறிகளைப் பார்த்தேன். இப்போது எப்படி உணர்கிறீர்கள்?",
+[CHAT_Q[1]]:"ಈ ತೊಂದರೆ ಎಷ್ಟು ದಿನದಿಂದ ಇದೆ? ಯಾವುದಾದರೂ ಔಷಧಿ ತೆಗೆದುಕೊಂಡಿದ್ದೀರಾ?|यह समस्या कब से है? क्या आपने कोई दवा ली है?|ఈ సమస్య ఎంతకాలంగా ఉంది? ఏదైనా మందు వాడారా?|இந்தப் பிரச்சினை எவ்வளவு நாளாக உள்ளது? ஏதாவது மருந்து எடுத்தீர்களா?",
+[CHAT_Q[2]]:"ಜ್ವರ, ವಾಂತಿ ಅಥವಾ ಉಸಿರಾಟದ ತೊಂದರೆಯಂತಹ ಬೇರೆ ಲಕ್ಷಣಗಳಿವೆಯೇ?|बुखार, उल्टी या सांस फूलने जैसे और कोई लक्षण हैं?|జ్వరం, వాంతులు లేదా ఊపిరి ఆడకపోవడం వంటి ఇతర లక్షణాలున్నాయా?|காய்ச்சல், வாந்தி அல்லது மூச்சுத் திணறல் போன்ற வேறு அறிகுறிகள் உள்ளனவா?",
+[CHAT_Q[3]]:"ಧನ್ಯವಾದ. ನಿಮ್ಮ ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸುತ್ತಿದ್ದೇನೆ. ನನ್ನ ಸಲಹೆ ನೋಡಲು ‘ಚಾಟ್ ಕೊನೆಗೊಳಿಸಿ’ ಒತ್ತಿ.|धन्यवाद। मैं आपका विवरण देख रहा हूं। मेरी सलाह देखने के लिए ‘चैट समाप्त करें’ दबाएं।|ధన్యవాదాలు. మీ వివరాలు పరిశీలిస్తున్నాను. నా సలహా చూడడానికి ‘చాట్ ముగించండి’ నొక్కండి.|நன்றி. உங்கள் விவரங்களை ஆராய்கிறேன். என் ஆலோசனையைப் பார்க்க ‘அரட்டையை முடிக்கவும்’ அழுத்துங்கள்.",
+"Type your message…":"ನಿಮ್ಮ ಸಂದೇಶ ಬರೆಯಿರಿ…|अपना संदेश लिखें…|మీ సందేశం రాయండి…|உங்கள் செய்தியை எழுதுங்கள்…",
+"Send":"ಕಳುಹಿಸಿ|भेजें|పంపండి|அனுப்பு",
+"End chat":"ಚಾಟ್ ಕೊನೆಗೊಳಿಸಿ|चैट समाप्त करें|చాట్ ముగించండి|அரட்டையை முடிக்கவும்",
+"typing…":"ಟೈಪ್ ಮಾಡುತ್ತಿದ್ದಾರೆ…|टाइप कर रहे हैं…|టైప్ చేస్తున్నారు…|தட்டச்சு செய்கிறார்…"
+});
+function vChat(){return `<h2>${tr("Chat")} – ${esc(tr(S.doc.n))}</h2><div class="card" style="padding:10px"><div id="chatbox" style="height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:6px" aria-live="polite"></div>
+<div class="row" style="flex-wrap:nowrap;margin-top:8px;align-items:center"><input id="cin" placeholder="${tr("Type your message…")}" style="flex:1;min-width:0"><button type="button" class="mic" style="margin:0" onclick="dictate('cin',this)" aria-label="${tr("Speak")}">🎤</button><button class="go" style="margin:0" onclick="sendChat()">${tr("Send")}</button></div>
+<div style="margin-top:10px">${nav(null,"endChat()",tr("End chat"))}</div></div>`}
+function addMsg(who,text){const b=$("#chatbox");if(!b)return;const d=document.createElement("div");d.className="msg "+who;const sp=document.createElement("span");sp.textContent=text;d.appendChild(sp);const sm=document.createElement("small");sm.textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});d.appendChild(sm);
+  if(who==="dr"){const bt=document.createElement("button");bt.type="button";bt.className="mic";bt.textContent="🔊";bt.setAttribute("aria-label","Read aloud");bt.style.marginTop="4px";bt.onclick=()=>say(text);d.appendChild(bt)}
+  b.appendChild(d);b.scrollTop=b.scrollHeight}
+function drReply(){const b=$("#chatbox");if(!b)return;const ty=document.createElement("div");ty.className="msg dr";ty.id="typ";ty.textContent=tr("typing…");b.appendChild(ty);b.scrollTop=b.scrollHeight;
+  setTimeout(()=>{const y=$("#typ");if(y)y.remove();const t=tr(CHAT_Q[Math.min(S.ci,CHAT_Q.length-1)]);S.ci++;addMsg("dr",t);if(S.voice)say(t)},1200)}
+function runChat(){S.chat=[];S.ci=0;drReply();$("#cin").onkeydown=e=>{if(e.key==="Enter")sendChat()}}
+function sendChat(){const el=$("#cin");if(!el)return;const t=el.value.trim();if(!t)return;addMsg("me",t);S.chat.push(t);el.value="";drReply()}
+function endChat(){
+  if("speechSynthesis" in window)speechSynthesis.cancel();
+  const said=S.chat.join(". ");
+  matchSym(said).forEach(x=>{if(!S.visit.symptoms.includes(x))S.visit.symptoms=S.visit.symptoms.filter(y=>y!=="Unknown").concat(x)});
+  if(said)S.visit.free=(S.visit.free?S.visit.free+" | ":"")+said;
+  go(5)}
+render();
+</script>
+</body>
+</html>
